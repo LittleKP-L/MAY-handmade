@@ -74,7 +74,7 @@
 
     async function loadProducts() {
       try {
-        const res = await fetch('https://script.google.com/macros/s/AKfycbxUoIAgQS1CsUzi2Wfl45VMyxTqAuPRKySOcJPUSBZuCcs0ROXitPCTbzgerAELcqg6/exec');
+        const res = await fetch('https://script.google.com/macros/s/AKfycbzItluZ563bZ9G53MSx9g-irVbWkTEP1VMeJFIJH7cIexdOGWYy7eIe9PRWXrcLt6xU/exec');
         const products = await res.json();
 
         if (!Array.isArray(products)) {
