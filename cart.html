@@ -5,13 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Your Cart | MAY’s Handmade</title>
 
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="images/favicon.png" />
 </head>
 
@@ -51,7 +46,7 @@
     <p>© 2025 MAY’s Handmade | Crafted with ❤️ by MAY</p>
   </footer>
 
-  <!-- ===== JS for Dynamic Cart ===== -->
+  <!-- ===== JAVASCRIPT ===== -->
   <script>
     const cartContainer = document.getElementById('cart-items');
     const totalDisplay = document.getElementById('cart-total');
@@ -59,49 +54,17 @@
     const checkoutBtn = document.getElementById('checkout-btn');
     const clearBtn = document.getElementById('clear-cart');
 
-    // ✅ Google Sheets JSON API URL
-    const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzItluZ563bZ9G53MSx9g-irVbWkTEP1VMeJFIJH7cIexdOGWYy7eIe9PRWXrcLt6xU/exec';
-
-    async function getLatestProducts() {
-      try {
-        const res = await fetch(GOOGLE_SHEET_URL);
-        const data = await res.json();
-        if (!Array.isArray(data)) throw new Error("Invalid data format");
-
-        data.forEach(p => {
-          if (p.img && !p.img.startsWith('http')) {
-            p.img = 'images/' + p.img.trim();
-          }
-        });
-
-        return data;
-      } catch (err) {
-        console.warn('⚠️ Failed to load latest products, using cached cart data.');
-        return [];
-      }
+    // ✅ Google Sheet URLs
+    const PRODUCT_URL = 'https://script.google.com/macros/s/AKfycbzItluZ563bZ9G53MSx9g-irVbWkTEP1VMeJFIJH7cIexdOGWYy7eIe9PRWXrcLt6xU/exec';
+    const ORDER_URL = 'https://script.google.com/macros/s/AKfycbzfE8qWNUdXQuiXq30anG_PQf8c3Ldj0KrKPiAAxQz-ZB2yHfDpMiqy82KUdoGb1P_O/exec';
+    // 🟢 Show local cart instantly
+    function displayLocalCart() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      renderCart(cart);
     }
 
-    async function syncCartWithLatestPrices() {
-      let cart = JSON.parse(localStorage.getItem('cart')) || [];
-      const products = await getLatestProducts();
-
-      if (products.length > 0) {
-        cart.forEach(item => {
-          const updated = products.find(p => String(p.id) === String(item.id));
-          if (updated) {
-            item.price = parseFloat(updated.price);
-            item.name = updated.name;
-            item.img = updated.img;
-          }
-        });
-        localStorage.setItem('cart', JSON.stringify(cart));
-      }
-    }
-
-    async function updateCartDisplay() {
-      await syncCartWithLatestPrices();
-      let cart = JSON.parse(localStorage.getItem('cart')) || [];
-
+    // 🟢 Render cart UI
+    function renderCart(cart) {
       cartContainer.innerHTML = "";
 
       if (cart.length === 0) {
@@ -118,10 +81,8 @@
       cartCount.textContent = cart.length;
 
       let total = 0;
-
       cart.forEach((item, index) => {
         total += item.price;
-
         const itemDiv = document.createElement("div");
         itemDiv.classList.add("cart-item");
         itemDiv.innerHTML = `
@@ -145,42 +106,99 @@
       });
     }
 
+    // 🟢 Background sync (update product info quietly)
+    async function syncCartInBackground() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      if (cart.length === 0) return;
+
+      try {
+        const res = await fetch(PRODUCT_URL);
+        const products = await res.json();
+        if (Array.isArray(products)) {
+          cart.forEach(item => {
+            const updated = products.find(p => String(p.id) === String(item.id));
+            if (updated) {
+              item.price = parseFloat(updated.price);
+              item.name = updated.name;
+              item.img = updated.img.startsWith('http') ? updated.img : 'images/' + updated.img.trim();
+            }
+          });
+          localStorage.setItem('cart', JSON.stringify(cart));
+          renderCart(cart);
+        }
+      } catch {
+        console.warn("Background sync failed");
+      }
+    }
+
+    // 🟢 Remove item
     function removeItem(index) {
       let cart = JSON.parse(localStorage.getItem("cart")) || [];
       cart.splice(index, 1);
       localStorage.setItem("cart", JSON.stringify(cart));
-      updateCartDisplay();
+      renderCart(cart);
     }
 
+    // 🟢 Clear all
     clearBtn.addEventListener("click", () => {
       if (confirm("Are you sure you want to clear your cart?")) {
         localStorage.removeItem("cart");
-        updateCartDisplay();
+        renderCart([]);
       }
     });
 
-    checkoutBtn.addEventListener("click", () => {
+    // 🟢 Checkout - ask for phone and save to Google Sheet
+    checkoutBtn.addEventListener("click", async () => {
       let cart = JSON.parse(localStorage.getItem('cart')) || [];
-      if (cart.length === 0) {
-        alert("Your cart is empty!");
+      if (cart.length === 0) return alert("Your cart is empty!");
+
+      const phoneInput = prompt("Please enter your phone number (start with 09):", "09");
+      if (!phoneInput || !phoneInput.startsWith("09")) {
+        alert("⚠️ Please enter a valid phone number starting with 09.");
         return;
       }
 
-      const message = cart.map(item => `👜 ${item.name} - ${item.price.toLocaleString()} MMK`).join("%0A");
+      const fullPhone = "+95" + phoneInput.substring(1);
       const total = cart.reduce((sum, item) => sum + item.price, 0);
-      const text = `Hello MAY! I'd like to order:%0A${message}%0A%0ATotal: ${total.toLocaleString()} MMK`;
 
-      window.open(`https://wa.me/959123456789?text=${text}`, "_blank");
+      const orderData = {
+        phone: fullPhone,
+        total: total,
+        items: cart.map(i => `${i.name} (${i.price} MMK)`).join(", ")
+      };
+
+      try {
+        const response = await fetch(ORDER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orderData)
+        });
+
+        const result = await response.text();
+        console.log("Response:", result);
+
+        if (result.includes("SUCCESS")) {
+          alert("✅ ကျေးဇူးတင်ပါတယ်! သင့် order ကို confirm လုပ်ဖို့ ဆက်သွယ်ပါမယ်။");
+          localStorage.removeItem("cart");
+          renderCart([]);
+        } else {
+          alert("⚠️ Order save failed: " + result);
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("⚠️ Order save failed. Please try again later.");
+      }
     });
 
-    // Header scroll effect
+    // 🟢 Header scroll effect
     window.addEventListener('scroll', () => {
-      const header = document.querySelector('header');
-      header.classList.toggle('scrolled', window.scrollY > 50);
+      document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50);
     });
 
-    // Initialize
-    updateCartDisplay();
+    // 🟢 Initialize
+    displayLocalCart();
+    setTimeout(syncCartInBackground, 500);
   </script>
 </body>
 </html>
