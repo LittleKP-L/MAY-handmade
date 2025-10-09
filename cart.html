@@ -8,142 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="images/favicon.png" />
-
-  <!-- ✅ Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-
-    // 🧩 Correct Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBVRZqqZjWUoaHoyGiEGL3-U6nFDrcb9ds",
-      authDomain: "may-handmade.firebaseapp.com",
-      databaseURL: "https://may-handmade-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "may-handmade",
-      storageBucket: "may-handmade.appspot.com",   // ✅ corrected
-      messagingSenderId: "899993829165",
-      appId: "1:899993829165:web:da9953e0534ad44cb59da4"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    // ✅ Cart Logic
-    window.addEventListener("DOMContentLoaded", () => {
-      const cartContainer = document.getElementById('cart-items');
-      const totalDisplay = document.getElementById('cart-total');
-      const cartCount = document.getElementById('cart-count');
-      const checkoutBtn = document.getElementById('checkout-btn');
-      const clearBtn = document.getElementById('clear-cart');
-
-      // 🛍 Display cart
-      function displayLocalCart() {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        renderCart(cart);
-      }
-
-      // 🧾 Render Cart
-      function renderCart(cart) {
-        cartContainer.innerHTML = "";
-
-        if (cart.length === 0) {
-          cartContainer.innerHTML = "<p style='text-align:center; color:#777;'>Your cart is empty 👜</p>";
-          totalDisplay.textContent = "";
-          checkoutBtn.style.display = "none";
-          clearBtn.style.display = "none";
-          cartCount.textContent = "0";
-          return;
-        }
-
-        checkoutBtn.style.display = "inline-block";
-        clearBtn.style.display = "inline-block";
-        cartCount.textContent = cart.length;
-
-        let total = 0;
-        cart.forEach((item, index) => {
-          total += item.price;
-          const itemDiv = document.createElement("div");
-          itemDiv.classList.add("cart-item");
-          itemDiv.innerHTML = `
-            <img src="${item.img}" alt="${item.name}">
-            <div class="cart-item-info">
-              <h3>${item.name}</h3>
-              <p>Price: ${item.price.toLocaleString()} MMK</p>
-            </div>
-            <button class="remove-btn" data-index="${index}">Remove</button>
-          `;
-          cartContainer.appendChild(itemDiv);
-        });
-
-        totalDisplay.textContent = "Total: " + total.toLocaleString() + " MMK";
-
-        document.querySelectorAll(".remove-btn").forEach(button => {
-          button.addEventListener("click", () => {
-            const index = button.getAttribute("data-index");
-            removeItem(index);
-          });
-        });
-      }
-
-      // ❌ Remove Item
-      function removeItem(index) {
-        let cart = JSON.parse(localStorage.getItem("cart")) || [];
-        cart.splice(index, 1);
-        localStorage.setItem("cart", JSON.stringify(cart));
-        renderCart(cart);
-      }
-
-      // 🧹 Clear Cart
-      clearBtn.addEventListener("click", () => {
-        if (confirm("Are you sure you want to clear your cart?")) {
-          localStorage.removeItem("cart");
-          renderCart([]);
-        }
-      });
-
-      // ✅ Checkout → Save to Firebase
-      checkoutBtn.addEventListener("click", async () => {
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        if (cart.length === 0) return alert("Your cart is empty!");
-
-        const phoneInput = prompt("Please enter your phone number (start with 09):", "09");
-        if (!phoneInput || !phoneInput.startsWith("09")) {
-          alert("⚠️ Please enter a valid phone number starting with 09.");
-          return;
-        }
-
-        const fullPhone = "+95" + phoneInput.substring(1);
-        const total = cart.reduce((sum, item) => sum + item.price, 0);
-
-        const orderData = {
-          phone: fullPhone,
-          total: total,
-          items: cart.map(i => `${i.name} (${i.price} MMK)`),
-          timestamp: new Date().toLocaleString()
-        };
-
-        try {
-          const orderRef = ref(db, "orders");
-          await push(orderRef, orderData);
-
-          alert("✅ ကျေးဇူးတင်ပါတယ်! သင့် order ကို confirm လုပ်ဖို့ ဆက်သွယ်ပါမယ်။");
-          localStorage.removeItem("cart");
-          renderCart([]);
-        } catch (err) {
-          console.error(err);
-          alert("⚠️ Order save failed. Please try again later.");
-        }
-      });
-
-      // Header Scroll Effect
-      window.addEventListener('scroll', () => {
-        document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50);
-      });
-
-      displayLocalCart();
-    });
-  </script>
 </head>
 
 <body>
@@ -181,5 +45,128 @@
   <footer>
     <p>© 2025 MAY’s Handmade | Crafted with ❤️ by MAY</p>
   </footer>
+
+  <!-- ===== MAIN SCRIPT ===== -->
+  <script>
+    const cartContainer = document.getElementById('cart-items');
+    const totalDisplay = document.getElementById('cart-total');
+    const cartCount = document.getElementById('cart-count');
+    const checkoutBtn = document.getElementById('checkout-btn');
+    const clearBtn = document.getElementById('clear-cart');
+
+    // 🛍 Display Cart
+    function displayLocalCart() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      renderCart(cart);
+    }
+
+    // 🧾 Render Cart UI
+    function renderCart(cart) {
+      cartContainer.innerHTML = "";
+
+      if (cart.length === 0) {
+        cartContainer.innerHTML = "<p style='text-align:center; color:#777;'>Your cart is empty 👜</p>";
+        totalDisplay.textContent = "";
+        checkoutBtn.style.display = "none";
+        clearBtn.style.display = "none";
+        cartCount.textContent = "0";
+        return;
+      }
+
+      checkoutBtn.style.display = "inline-block";
+      clearBtn.style.display = "inline-block";
+      cartCount.textContent = cart.length;
+
+      let total = 0;
+      cart.forEach((item, index) => {
+        total += item.price;
+        const itemDiv = document.createElement("div");
+        itemDiv.classList.add("cart-item");
+        itemDiv.innerHTML = `
+          <img src="${item.img}" alt="${item.name}">
+          <div class="cart-item-info">
+            <h3>${item.name}</h3>
+            <p>Price: ${item.price.toLocaleString()} MMK</p>
+          </div>
+          <button class="remove-btn" data-index="${index}">Remove</button>
+        `;
+        cartContainer.appendChild(itemDiv);
+      });
+
+      totalDisplay.textContent = "Total: " + total.toLocaleString() + " MMK";
+
+      document.querySelectorAll(".remove-btn").forEach(button => {
+        button.addEventListener("click", () => {
+          const index = button.getAttribute("data-index");
+          removeItem(index);
+        });
+      });
+    }
+
+    // ❌ Remove item
+    function removeItem(index) {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart.splice(index, 1);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      renderCart(cart);
+    }
+
+    // 🧹 Clear Cart
+    clearBtn.addEventListener("click", () => {
+      if (confirm("Are you sure you want to clear your cart?")) {
+        localStorage.removeItem("cart");
+        renderCart([]);
+      }
+    });
+
+    // ✅ Checkout → Send to Formspree
+    checkoutBtn.addEventListener("click", async () => {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      if (cart.length === 0) return alert("Your cart is empty!");
+
+      const phoneInput = prompt("Please enter your phone number (start with 09):", "09");
+      if (!phoneInput || !phoneInput.startsWith("09")) {
+        alert("⚠️ Please enter a valid phone number starting with 09.");
+        return;
+      }
+
+      const fullPhone = "+95" + phoneInput.substring(1);
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+      const orderData = {
+        phone: fullPhone,
+        total: total + " MMK",
+        items: cart.map(i => `${i.name} (${i.price} MMK)`),
+        timestamp: new Date().toLocaleString()
+      };
+
+      try {
+        // ✅ Send order data to Formspree
+        const response = await fetch("https://formspree.io/f/manppwon", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orderData)
+        });
+
+        if (response.ok) {
+          alert("✅ ကျေးဇူးတင်ပါတယ်! သင့် order ကို confirm လုပ်ဖို့ ဆက်သွယ်ပါမယ်။");
+          localStorage.removeItem("cart");
+          renderCart([]);
+        } else {
+          alert("⚠️ Order save failed. Please try again later.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("⚠️ Network error! Please try again later.");
+      }
+    });
+
+    // Header Scroll Effect
+    window.addEventListener('scroll', () => {
+      document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    displayLocalCart();
+  </script>
 </body>
 </html>
