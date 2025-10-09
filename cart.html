@@ -54,13 +54,11 @@
     const checkoutBtn = document.getElementById('checkout-btn');
     const clearBtn = document.getElementById('clear-cart');
 
-    // 🛍 Display Cart
     function displayLocalCart() {
       const cart = JSON.parse(localStorage.getItem('cart')) || [];
       renderCart(cart);
     }
 
-    // 🧾 Render Cart UI
     function renderCart(cart) {
       cartContainer.innerHTML = "";
 
@@ -103,7 +101,6 @@
       });
     }
 
-    // ❌ Remove item
     function removeItem(index) {
       let cart = JSON.parse(localStorage.getItem("cart")) || [];
       cart.splice(index, 1);
@@ -111,7 +108,6 @@
       renderCart(cart);
     }
 
-    // 🧹 Clear Cart
     clearBtn.addEventListener("click", () => {
       if (confirm("Are you sure you want to clear your cart?")) {
         localStorage.removeItem("cart");
@@ -119,7 +115,7 @@
       }
     });
 
-    // ✅ Checkout → Send to Formspree
+    // ✅ Checkout → Send to Formspree using FormData
     checkoutBtn.addEventListener("click", async () => {
       let cart = JSON.parse(localStorage.getItem('cart')) || [];
       if (cart.length === 0) return alert("Your cart is empty!");
@@ -130,22 +126,17 @@
         return;
       }
 
-      const fullPhone = "+95" + phoneInput.substring(1);
       const total = cart.reduce((sum, item) => sum + item.price, 0);
-
-      const orderData = {
-        phone: fullPhone,
-        total: total + " MMK",
-        items: cart.map(i => `${i.name} (${i.price} MMK)`),
-        timestamp: new Date().toLocaleString()
-      };
+      const formData = new FormData();
+      formData.append("Phone", "+95" + phoneInput.substring(1));
+      formData.append("Total", total + " MMK");
+      formData.append("Items", cart.map(i => `${i.name} (${i.price} MMK)`).join(", "));
+      formData.append("Time", new Date().toLocaleString());
 
       try {
-        // ✅ Send order data to Formspree
         const response = await fetch("https://formspree.io/f/manppwon", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(orderData)
+          body: formData
         });
 
         if (response.ok) {
@@ -153,15 +144,14 @@
           localStorage.removeItem("cart");
           renderCart([]);
         } else {
-          alert("⚠️ Order save failed. Please try again later.");
+          alert("⚠️ Something went wrong. Please try again later.");
         }
       } catch (err) {
         console.error(err);
-        alert("⚠️ Network error! Please try again later.");
+        alert("⚠️ Network error. Try again later!");
       }
     });
 
-    // Header Scroll Effect
     window.addEventListener('scroll', () => {
       document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50);
     });
