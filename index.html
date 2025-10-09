@@ -74,12 +74,17 @@
 
     async function loadProducts() {
       try {
-        const res = await fetch('https://script.google.com/macros/s/AKfycbzItluZ563bZ9G53MSx9g-irVbWkTEP1VMeJFIJH7cIexdOGWYy7eIe9PRWXrcLt6xU/exec');
+        const res = await fetch('https://script.google.com/macros/s/AKfycbzDXeNqUzFEyKfs_NBFZAVY2SnP8d7N_kV-nbRAFw5KdKdd3aLXla-P0wRCc0N85aLX/exec');
         const products = await res.json();
 
-        if (!Array.isArray(products)) {
-          throw new Error("Invalid JSON format");
-        }
+        if (!Array.isArray(products)) throw new Error("Invalid JSON format");
+
+        // ပြင်ထားတဲ့ img path ကို images folder အောက်မှာဖတ်အောင်ပြင်
+        products.forEach(p => {
+          if (p.img && !p.img.startsWith("http")) {
+            p.img = "images/" + p.img.trim();
+          }
+        });
 
         displayProducts(products);
       } catch (error) {
@@ -99,8 +104,20 @@
           <h3>${product.name}</h3>
           <p>Price: ${parseInt(product.price).toLocaleString()} MMK</p>
           <div class="button-group">
-            <button class="btn add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}" data-img="${product.img}">Add to Cart</button>
-            <button class="btn buy-now" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}" data-img="${product.img}">Buy Now</button>
+            <button class="btn add-to-cart" 
+              data-id="${product.id}" 
+              data-name="${product.name}" 
+              data-price="${product.price}" 
+              data-img="${product.img}">
+              Add to Cart
+            </button>
+            <button class="btn buy-now" 
+              data-id="${product.id}" 
+              data-name="${product.name}" 
+              data-price="${product.price}" 
+              data-img="${product.img}">
+              Buy Now
+            </button>
           </div>
         `;
         productGrid.appendChild(div);
@@ -110,10 +127,7 @@
     }
 
     function setupButtons() {
-      const cartButtons = document.querySelectorAll('.add-to-cart');
-      const buyNowButtons = document.querySelectorAll('.buy-now');
-
-      cartButtons.forEach(button => {
+      document.querySelectorAll('.add-to-cart').forEach(button => {
         button.addEventListener('click', () => {
           const product = {
             id: button.dataset.id,
@@ -130,7 +144,7 @@
         });
       });
 
-      buyNowButtons.forEach(button => {
+      document.querySelectorAll('.buy-now').forEach(button => {
         button.addEventListener('click', () => {
           const product = {
             id: button.dataset.id,
@@ -150,7 +164,6 @@
       cartCount.textContent = cart.length;
     }
 
-    // Initialize
     updateCartCount();
     loadProducts();
   </script>
