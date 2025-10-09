@@ -74,11 +74,17 @@
 
     async function loadProducts() {
       try {
-        const res = await fetch('products.json');
+        const res = await fetch('https://script.google.com/macros/s/AKfycbxUoIAgQS1CsUzi2Wfl45VMyxTqAuPRKySOcJPUSBZuCcs0ROXitPCTbzgerAELcqg6/exec');
         const products = await res.json();
+
+        if (!Array.isArray(products)) {
+          throw new Error("Invalid JSON format");
+        }
+
         displayProducts(products);
       } catch (error) {
-        productGrid.innerHTML = "<p style='color:red;'>Failed to load products.</p>";
+        console.error("Error loading products:", error);
+        productGrid.innerHTML = "<p style='color:red;'>⚠️ Failed to load products. Please try again later.</p>";
       }
     }
 
@@ -89,9 +95,9 @@
         const div = document.createElement('div');
         div.classList.add('product');
         div.innerHTML = `
-          <img src="${product.img}" alt="${product.name}" />
+          <img src="${product.img}" alt="${product.name}" loading="lazy" />
           <h3>${product.name}</h3>
-          <p>Price: ${product.price.toLocaleString()} MMK</p>
+          <p>Price: ${parseInt(product.price).toLocaleString()} MMK</p>
           <div class="button-group">
             <button class="btn add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}" data-img="${product.img}">Add to Cart</button>
             <button class="btn buy-now" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}" data-img="${product.img}">Buy Now</button>

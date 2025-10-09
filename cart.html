@@ -54,10 +54,15 @@
     const cartCount = document.getElementById('cart-count');
     const checkoutBtn = document.getElementById('checkout-btn');
 
+    // ✅ Google Sheets JSON API URL
+    const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxUoIAgQS1CsUzi2Wfl45VMyxTqAuPRKySOcJPUSBZuCcs0ROXitPCTbzgerAELcqg6/exec';
+
     async function getLatestProducts() {
       try {
-        const res = await fetch('products.json');
-        return await res.json();
+        const res = await fetch(GOOGLE_SHEET_URL);
+        const data = await res.json();
+        if (!Array.isArray(data)) throw new Error("Invalid data format");
+        return data;
       } catch (err) {
         console.error('Failed to load product data:', err);
         return [];
@@ -71,7 +76,7 @@
       cart.forEach(item => {
         const updated = products.find(p => p.id === item.id);
         if (updated) {
-          item.price = updated.price;
+          item.price = parseFloat(updated.price);
           item.name = updated.name;
           item.img = updated.img;
         }
