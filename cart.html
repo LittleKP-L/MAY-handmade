@@ -8,22 +8,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="images/favicon.png" />
+
   <!-- ✅ Firebase SDK -->
   <script type="module">
-    // Import Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    // 🧩 Your Firebase Config — replace these values with yours
+    // 🧩 Correct Firebase Config
     const firebaseConfig = {
-  apiKey: "AIzaSyBVRZqqZjWUoaHoyGiEGL3-U6nFDrcb9ds",
-  authDomain: "may-handmade.firebaseapp.com",
-  databaseURL: "https://may-handmade-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "may-handmade",
-  storageBucket: "may-handmade.firebasestorage.app",
-  messagingSenderId: "899993829165",
-  appId: "1:899993829165:web:da9953e0534ad44cb59da4"
-  };
+      apiKey: "AIzaSyBVRZqqZjWUoaHoyGiEGL3-U6nFDrcb9ds",
+      authDomain: "may-handmade.firebaseapp.com",
+      databaseURL: "https://may-handmade-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "may-handmade",
+      storageBucket: "may-handmade.appspot.com",   // ✅ corrected
+      messagingSenderId: "899993829165",
+      appId: "1:899993829165:web:da9953e0534ad44cb59da4"
+    };
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
@@ -37,11 +37,13 @@
       const checkoutBtn = document.getElementById('checkout-btn');
       const clearBtn = document.getElementById('clear-cart');
 
+      // 🛍 Display cart
       function displayLocalCart() {
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
         renderCart(cart);
       }
 
+      // 🧾 Render Cart
       function renderCart(cart) {
         cartContainer.innerHTML = "";
 
@@ -84,6 +86,7 @@
         });
       }
 
+      // ❌ Remove Item
       function removeItem(index) {
         let cart = JSON.parse(localStorage.getItem("cart")) || [];
         cart.splice(index, 1);
@@ -91,6 +94,7 @@
         renderCart(cart);
       }
 
+      // 🧹 Clear Cart
       clearBtn.addEventListener("click", () => {
         if (confirm("Are you sure you want to clear your cart?")) {
           localStorage.removeItem("cart");
@@ -98,7 +102,7 @@
         }
       });
 
-      // ✅ Checkout - Save to Firebase
+      // ✅ Checkout → Save to Firebase
       checkoutBtn.addEventListener("click", async () => {
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         if (cart.length === 0) return alert("Your cart is empty!");
@@ -122,6 +126,7 @@
         try {
           const orderRef = ref(db, "orders");
           await push(orderRef, orderData);
+
           alert("✅ ကျေးဇူးတင်ပါတယ်! သင့် order ကို confirm လုပ်ဖို့ ဆက်သွယ်ပါမယ်။");
           localStorage.removeItem("cart");
           renderCart([]);
@@ -131,6 +136,7 @@
         }
       });
 
+      // Header Scroll Effect
       window.addEventListener('scroll', () => {
         document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50);
       });
@@ -159,6 +165,7 @@
     </nav>
   </header>
 
+  <!-- ===== CART SECTION ===== -->
   <section class="cart-container">
     <h2>Your Shopping Cart</h2>
     <div id="cart-items" class="cart-items"></div>
@@ -170,6 +177,7 @@
     </div>
   </section>
 
+  <!-- ===== FOOTER ===== -->
   <footer>
     <p>© 2025 MAY’s Handmade | Crafted with ❤️ by MAY</p>
   </footer>
