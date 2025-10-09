@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Cart | MAY’s Handmade</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="images/favicon.png" />
+</head>
+
+<body>
+  <!-- ===== HEADER ===== -->
+  <header>
+    <div class="logo">
+      <img src="images/logo.png" alt="MAY’s Handmade Logo" />
+      <h1>MAY’s Handmade</h1>
+    </div>
+
+    <nav>
+      <ul>
+        <li><a href="index.html#home">Home</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#products">Products</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+        <li><a href="cart.html" class="cart-link">🛍️ Cart (<span id="cart-count">0</span>)</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- ===== CART SECTION ===== -->
+  <section class="cart-container">
+    <h2>Your Shopping Cart</h2>
+    <div id="cart-items" class="cart-items"></div>
+    <div id="cart-total" class="total"></div>
+    <button id="checkout-btn" class="checkout-btn">Proceed to Checkout</button>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <p>© 2025 MAY’s Handmade | Crafted with ❤️ by MAY</p>
+  </footer>
+
+  <!-- ===== JS for Dynamic Cart ===== -->
+  <script>
+    const cartContainer = document.getElementById('cart-items');
+    const totalDisplay = document.getElementById('cart-total');
+    const cartCount = document.getElementById('cart-count');
+    const checkoutBtn = document.getElementById('checkout-btn');
+
+    async function getLatestProducts() {
+      try {
+        const res = await fetch('products.json');
+        return await res.json();
+      } catch (err) {
+        console.error('Failed to load product data:', err);
+        return [];
+      }
+    }
+
+    async function syncCartWithLatestPrices() {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const products = await getLatestProducts();
+
+      cart.forEach(item => {
+        const updated = products.find(p => p.id === item.id);
+        if (updated) {
+          item.price = updated.price;
+          item.name = updated.name;
+          item.img = updated.img;
+        }
+      });
+
+      localStorage.setItem('cart', JSON.stringify(cart));
+    }
+
+    async function updateCartDisplay() {
+      await syncCartWithLatestPrices();
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+      cartContainer.innerHTML = "";
+
+      if (cart.length === 0) {
+        cartContainer.innerHTML = "<p style='text-align:center; color:#777;'>Your cart is empty 👜</p>";
+        totalDisplay.textContent = "";
+        checkoutBtn.style.display = "none";
+        cartCount.textContent = "0";
+        return;
+      }
+
+      checkoutBtn.style.display = "block";
+      cartCount.textContent = cart.length;
+
+      let total = 0;
+
+      cart.forEach((item, index) => {
+        total += item.price;
+
+        const itemDiv = document.createElement("div");
+        itemDiv.classList.add("cart-item");
+        itemDiv.innerHTML = `
+          <img src="${item.img}" alt="${item.name}">
+          <div class="cart-item-info">
+            <h3>${item.name}</h3>
+            <p>Price: ${item.price.toLocaleString()} MMK</p>
+          </div>
+          <button class="remove-btn" data-index="${index}">Remove</button>
+        `;
+        cartContainer.appendChild(itemDiv);
+      });
+
+      totalDisplay.textContent = "Total: " + total.toLocaleString() + " MMK";
+
+      document.querySelectorAll(".remove-btn").forEach(button => {
+        button.addEventListener("click", () => {
+          const index = button.getAttribute("data-index");
+          cart.splice(index, 1);
+          localStorage.setItem("cart", JSON.stringify(cart));
+          updateCartDisplay();
+        });
+      });
+    }
+
+    checkoutBtn.addEventListener("click", () => {
+      alert("Thank you for your purchase! 💖");
+      localStorage.removeItem("cart");
+      updateCartDisplay();
+    });
+
+    window.addEventListener('scroll', () => {
+      const header = document.querySelector('header');
+      if (window.scrollY > 50) header.classList.add('scrolled');
+      else header.classList.remove('scrolled');
+    });
+
+    // Initialize
+    updateCartDisplay();
+  </script>
+</body>
+</html>
