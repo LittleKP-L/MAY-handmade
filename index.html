@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MAY’s Handmade</title>
 
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="images/favicon.png" />
 </head>
@@ -16,6 +19,7 @@
     <div class="logo">
       <img src="images/logo.png" alt="MAY’s Handmade Logo" />
       <h1>MAY’s Handmade</h1>
+      <span class="menu-toggle">☰</span>
     </div>
 
     <nav>
@@ -69,6 +73,15 @@
 
   <!-- ===== JS ===== -->
   <script>
+    // ===== Mobile Menu Toggle =====
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navMenu = document.querySelector('nav ul');
+
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('show');
+    });
+
+    // ===== Product + Cart Script =====
     const productGrid = document.getElementById('product-grid');
     const cartCount = document.getElementById('cart-count');
 
@@ -79,10 +92,13 @@
 
         if (!Array.isArray(products)) throw new Error("Invalid JSON format");
 
-        // ပြင်ထားတဲ့ img path ကို images folder အောက်မှာဖတ်အောင်ပြင်
+        // ✅ Fix relative image paths
         products.forEach(p => {
           if (p.img && !p.img.startsWith("http")) {
-            p.img = "images/" + p.img.trim();
+            p.img = p.img.trim();
+            if (!p.img.startsWith("images/")) {
+              p.img = "images/" + p.img;
+            }
           }
         });
 

@@ -39,7 +39,11 @@
     <h2>Your Shopping Cart</h2>
     <div id="cart-items" class="cart-items"></div>
     <div id="cart-total" class="total"></div>
-    <button id="checkout-btn" class="checkout-btn">Proceed to Checkout</button>
+
+    <div class="cart-actions">
+      <button id="checkout-btn" class="checkout-btn">Proceed to Checkout</button>
+      <button id="clear-cart" class="remove-btn" style="margin-top:10px;">Clear Cart</button>
+    </div>
   </section>
 
   <!-- ===== FOOTER ===== -->
@@ -53,6 +57,7 @@
     const totalDisplay = document.getElementById('cart-total');
     const cartCount = document.getElementById('cart-count');
     const checkoutBtn = document.getElementById('checkout-btn');
+    const clearBtn = document.getElementById('clear-cart');
 
     // ✅ Google Sheets JSON API URL
     const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzItluZ563bZ9G53MSx9g-irVbWkTEP1VMeJFIJH7cIexdOGWYy7eIe9PRWXrcLt6xU/exec';
@@ -63,7 +68,6 @@
         const data = await res.json();
         if (!Array.isArray(data)) throw new Error("Invalid data format");
 
-        // ✅ Fix image path (prepend images/ if not URL)
         data.forEach(p => {
           if (p.img && !p.img.startsWith('http')) {
             p.img = 'images/' + p.img.trim();
@@ -72,7 +76,7 @@
 
         return data;
       } catch (err) {
-        console.error('Failed to load product data:', err);
+        console.warn('⚠️ Failed to load latest products, using cached cart data.');
         return [];
       }
     }
@@ -81,16 +85,17 @@
       let cart = JSON.parse(localStorage.getItem('cart')) || [];
       const products = await getLatestProducts();
 
-      cart.forEach(item => {
-        const updated = products.find(p => String(p.id) === String(item.id));
-        if (updated) {
-          item.price = parseFloat(updated.price);
-          item.name = updated.name;
-          item.img = updated.img;
-        }
-      });
-
-      localStorage.setItem('cart', JSON.stringify(cart));
+      if (products.length > 0) {
+        cart.forEach(item => {
+          const updated = products.find(p => String(p.id) === String(item.id));
+          if (updated) {
+            item.price = parseFloat(updated.price);
+            item.name = updated.name;
+            item.img = updated.img;
+          }
+        });
+        localStorage.setItem('cart', JSON.stringify(cart));
+      }
     }
 
     async function updateCartDisplay() {
@@ -103,11 +108,13 @@
         cartContainer.innerHTML = "<p style='text-align:center; color:#777;'>Your cart is empty 👜</p>";
         totalDisplay.textContent = "";
         checkoutBtn.style.display = "none";
+        clearBtn.style.display = "none";
         cartCount.textContent = "0";
         return;
       }
 
-      checkoutBtn.style.display = "block";
+      checkoutBtn.style.display = "inline-block";
+      clearBtn.style.display = "inline-block";
       cartCount.textContent = cart.length;
 
       let total = 0;
@@ -133,23 +140,43 @@
       document.querySelectorAll(".remove-btn").forEach(button => {
         button.addEventListener("click", () => {
           const index = button.getAttribute("data-index");
-          cart.splice(index, 1);
-          localStorage.setItem("cart", JSON.stringify(cart));
-          updateCartDisplay();
+          removeItem(index);
         });
       });
     }
 
-    checkoutBtn.addEventListener("click", () => {
-      alert("Thank you for your purchase! 💖");
-      localStorage.removeItem("cart");
+    function removeItem(index) {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart.splice(index, 1);
+      localStorage.setItem("cart", JSON.stringify(cart));
       updateCartDisplay();
+    }
+
+    clearBtn.addEventListener("click", () => {
+      if (confirm("Are you sure you want to clear your cart?")) {
+        localStorage.removeItem("cart");
+        updateCartDisplay();
+      }
     });
 
+    checkoutBtn.addEventListener("click", () => {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      if (cart.length === 0) {
+        alert("Your cart is empty!");
+        return;
+      }
+
+      const message = cart.map(item => `👜 ${item.name} - ${item.price.toLocaleString()} MMK`).join("%0A");
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      const text = `Hello MAY! I'd like to order:%0A${message}%0A%0ATotal: ${total.toLocaleString()} MMK`;
+
+      window.open(`https://wa.me/959123456789?text=${text}`, "_blank");
+    });
+
+    // Header scroll effect
     window.addEventListener('scroll', () => {
       const header = document.querySelector('header');
-      if (window.scrollY > 50) header.classList.add('scrolled');
-      else header.classList.remove('scrolled');
+      header.classList.toggle('scrolled', window.scrollY > 50);
     });
 
     // Initialize

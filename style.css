@@ -306,12 +306,6 @@ footer {
 
 /* ===== Responsive Design ===== */
 @media (max-width: 1024px) {
-  header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
   .logo h1 {
     font-size: 1.5rem;
   }
@@ -331,7 +325,47 @@ footer {
   }
 }
 
+/* ===== Mobile Menu (Responsive Header) ===== */
 @media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .menu-toggle {
+    display: block;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #b45b6d;
+  }
+
+  nav ul {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    background: #ffe6ec;
+    border-radius: 12px;
+    padding: 10px;
+    margin-top: 10px;
+  }
+
+  nav ul.show {
+    display: flex;
+  }
+
+  nav ul li {
+    margin: 10px 0;
+    text-align: left;
+  }
+
   .hero {
     height: 60vh;
   }
@@ -368,6 +402,7 @@ footer {
   }
 }
 
+/* ===== Small Devices ===== */
 @media (max-width: 480px) {
   .hero {
     height: auto;
