@@ -10,7 +10,7 @@
   <link rel="icon" type="image/png" href="images/favicon.png" />
 
   <style>
-    /* ===== CART PAGE SPECIFIC STYLES ===== */
+    /* ===== CART PAGE HEADER ===== */
     body.cart-page header {
       position: fixed;
       top: 0;
@@ -40,13 +40,17 @@
       font-size: 1.6rem;
       margin: 0;
       color: #ff4081;
+      text-align: center;
     }
 
+    /* ===== MENU TOGGLE ===== */
     .menu-toggle {
-      display: none;
       cursor: pointer;
-      font-size: 28px;
-      user-select: none;
+      font-size: 30px;
+      display: none;
+      background: none;
+      border: none;
+      color: #333;
     }
 
     nav ul {
@@ -69,6 +73,7 @@
       color: #ff4081;
     }
 
+    /* ===== CART CONTAINER ===== */
     .cart-container {
       max-width: 800px;
       margin: 120px auto 60px;
@@ -145,14 +150,27 @@
       text-align: center;
       color: #555;
       font-size: 14px;
+      padding-bottom: 80px; /* prevent overlap with floating cart icon */
     }
 
     /* ===== MOBILE MENU ===== */
     @media (max-width: 768px) {
+      body.cart-page header {
+        justify-content: center;
+        padding: 12px 16px;
+      }
+
+      .logo {
+        flex: 1;
+        justify-content: center;
+      }
+
       .menu-toggle {
         display: block;
         position: absolute;
-        right: 20px;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
       }
 
       nav ul {
@@ -200,7 +218,7 @@
       <h1>MAY’s Handmade</h1>
     </div>
 
-    <div class="menu-toggle" id="menu-toggle">☰</div>
+    <button class="menu-toggle" id="menu-toggle">☰</button>
 
     <nav id="nav-menu">
       <ul>
@@ -227,7 +245,7 @@
 
   <!-- ===== FOOTER ===== -->
   <footer>
-    <p>© 2025-2026 MAY’s Handmade | Crafted with ❤️ by MAY</p>
+    <p>© 2025 MAY’s Handmade | Crafted with ❤️ by MAY</p>
   </footer>
 
   <!-- ===== MAIN SCRIPT ===== -->
@@ -299,27 +317,19 @@
       }
     });
 
-    // ✅ Checkout → Formspree (with strict Myanmar phone validation)
+    // ✅ Checkout validation
     checkoutBtn.addEventListener("click", () => {
       let cart = JSON.parse(localStorage.getItem('cart')) || [];
       if (cart.length === 0) return alert("Your cart is empty!");
 
-      const phoneInput = prompt("Please enter your phone number (09xxxxxxxxx):", "09");
-      if (phoneInput === null || phoneInput.trim() === "") {
-        alert("⚠️ Please enter your phone number to continue.");
-        return;
-      }
-
-      // Strict Myanmar phone check: must start with 09 and be 9–11 digits
-      const phoneRegex = /^09\d{7,9}$/;
-      if (!phoneRegex.test(phoneInput)) {
-        alert("⚠️ Please enter a valid phone number (09xxxxxxxxx, 9–11 digits).");
+      const phoneInput = prompt("Please enter your phone number (09xxxxxxxxxx):", "09");
+      if (!phoneInput || !/^09\d{9}$/.test(phoneInput)) {
+        alert("⚠️ Please enter a valid 11-digit phone number starting with 09 (e.g. 09123456789).");
         return;
       }
 
       const fullPhone = "+95" + phoneInput.substring(1);
       const total = cart.reduce((sum, item) => sum + item.price, 0);
-
       const orderData = {
         Phone: fullPhone,
         Total: total + " MMK",
@@ -333,10 +343,7 @@
 
       fetch("https://formspree.io/f/xkgqqoev", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify(orderData)
       }).catch(err => console.warn("Background send failed:", err));
     });
@@ -349,13 +356,11 @@
 
     menuToggle.addEventListener('click', () => {
       navMenu.querySelector('ul').classList.toggle('active');
-      menuToggle.classList.toggle('open');
     });
 
     document.querySelectorAll('nav a').forEach(link => {
       link.addEventListener('click', () => {
         navMenu.querySelector('ul').classList.remove('active');
-        menuToggle.classList.remove('open');
       });
     });
   </script>
