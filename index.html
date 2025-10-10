@@ -5,13 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MAY’s Handmade</title>
 
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-  <!-- Stylesheet -->
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="images/favicon.png" />
 </head>
@@ -81,24 +76,19 @@
 
   <!-- ===== MAIN SCRIPT ===== -->
   <script>
-    // ✅ MOBILE MENU TOGGLE
+    // ✅ MENU TOGGLE
     const menuToggle = document.getElementById('menu-toggle');
     const navMenu = document.querySelector('nav ul');
-
     menuToggle.addEventListener('click', () => {
       navMenu.classList.toggle('show');
     });
-
-    // ✅ AUTO CLOSE MENU WHEN LINK CLICKED (Mobile)
     document.querySelectorAll('nav a').forEach(link => {
       link.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
-          navMenu.classList.remove('show');
-        }
+        if (window.innerWidth <= 768) navMenu.classList.remove('show');
       });
     });
 
-    // ✅ PRODUCTS FROM GOOGLE SHEET
+    // ✅ PRODUCT LOAD
     const productGrid = document.getElementById('product-grid');
     const cartCount = document.getElementById('cart-count');
     const floatingCartCount = document.getElementById('floating-cart-count');
@@ -113,7 +103,7 @@
           }
         });
         displayProducts(products);
-      } catch (err) {
+      } catch {
         productGrid.innerHTML = "<p style='color:red;'>⚠️ Failed to load products.</p>";
       }
     }
@@ -122,11 +112,16 @@
       productGrid.innerHTML = '';
       products.forEach(p => {
         const div = document.createElement('div');
-        div.className = "product";
+        div.className = "product fade-in";
         div.innerHTML = `
           <img src="${p.img}" alt="${p.name}" loading="lazy" />
           <h3>${p.name}</h3>
           <p>Price: ${parseInt(p.price).toLocaleString()} MMK</p>
+          <div class="quantity-selector">
+            <button class="qty-btn minus">−</button>
+            <span class="qty">1</span>
+            <button class="qty-btn plus">+</button>
+          </div>
           <div class="button-group">
             <button class="btn add-to-cart" data-name="${p.name}" data-price="${p.price}" data-img="${p.img}">Add to Cart</button>
             <button class="btn buy-now" data-name="${p.name}" data-price="${p.price}" data-img="${p.img}">Buy Now</button>
@@ -137,51 +132,86 @@
       setupButtons();
     }
 
+    // ✅ SETUP BUTTONS
     function setupButtons() {
-      document.querySelectorAll('.add-to-cart').forEach(btn => {
-        btn.onclick = () => {
+      document.querySelectorAll('.product').forEach(prod => {
+        const minus = prod.querySelector('.minus');
+        const plus = prod.querySelector('.plus');
+        const qtySpan = prod.querySelector('.qty');
+        const addBtn = prod.querySelector('.add-to-cart');
+        const buyBtn = prod.querySelector('.buy-now');
+        let qty = 1;
+
+        minus.onclick = () => {
+          if (qty > 1) {
+            qty--;
+            qtySpan.textContent = qty;
+          }
+        };
+        plus.onclick = () => {
+          qty++;
+          qtySpan.textContent = qty;
+        };
+
+        addBtn.onclick = () => {
+          const name = addBtn.dataset.name;
+          const price = parseFloat(addBtn.dataset.price);
+          const img = addBtn.dataset.img;
+
           let cart = JSON.parse(localStorage.getItem('cart')) || [];
-          const product = {
-            name: btn.dataset.name,
-            price: parseFloat(btn.dataset.price),
-            img: btn.dataset.img
-          };
-          cart.push(product);
+          const existing = cart.find(item => item.name === name);
+
+          if (existing) {
+            existing.qty += qty; // ✅ qty တိုးထည့်
+          } else {
+            cart.push({ name, price, img, qty });
+          }
+
           localStorage.setItem('cart', JSON.stringify(cart));
           updateCartCount();
-          alert(`${product.name} added to cart!`);
+          showPopup(`${name} (x${qty}) added to cart!`);
         };
-      });
-      document.querySelectorAll('.buy-now').forEach(btn => {
-        btn.onclick = () => {
-          const product = {
-            name: btn.dataset.name,
-            price: parseFloat(btn.dataset.price),
-            img: btn.dataset.img
-          };
-          localStorage.setItem('cart', JSON.stringify([product]));
+
+        buyBtn.onclick = () => {
+          const name = buyBtn.dataset.name;
+          const price = parseFloat(buyBtn.dataset.price);
+          const img = buyBtn.dataset.img;
+          localStorage.setItem('cart', JSON.stringify([{ name, price, img, qty }]));
           window.location.href = 'cart.html';
         };
       });
     }
 
+    // ✅ POPUP
+    function showPopup(text) {
+      const popup = document.createElement('div');
+      popup.className = 'cart-popup';
+      popup.textContent = text;
+      document.body.appendChild(popup);
+      setTimeout(() => popup.classList.add('show'), 10);
+      setTimeout(() => popup.classList.remove('show'), 2500);
+      setTimeout(() => popup.remove(), 3000);
+    }
+
+    // ✅ CART COUNT UPDATE
     function updateCartCount() {
       const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      cartCount.textContent = cart.length;
-      floatingCartCount.textContent = cart.length;
+      const total = cart.reduce((sum, p) => sum + (p.qty || 1), 0);
+      cartCount.textContent = total;
+      floatingCartCount.textContent = total;
     }
 
     updateCartCount();
     loadProducts();
 
-    // ✅ CONTACT LINKS (Auto Brand Colors)
+    // ✅ CONTACT BUTTONS
     const contactContainer = document.getElementById("contact-buttons");
     const contactStyles = {
       whatsapp: { icon: "fa-brands fa-whatsapp", color: "#25D366" },
       telegram: { icon: "fa-brands fa-telegram", color: "#229ED9" },
       messenger: { icon: "fa-brands fa-facebook-messenger", color: "#0084FF" },
       viber: { icon: "fa-brands fa-viber", color: "#7360F2" },
-      tiktok: { icon: "fa-brands fa-tiktok", color: "#000000" },
+      tiktok: { icon: "fa-brands fa-tiktok", color: "#000" },
       instagram: { icon: "fa-brands fa-instagram", color: "#E4405F" },
       facebook: { icon: "fa-brands fa-facebook", color: "#1877F2" }
     };
@@ -202,12 +232,60 @@
           contactContainer.appendChild(btn);
         });
       })
-      .catch(() => {
-        contactContainer.innerHTML = "<p style='color:red;'>⚠️ Failed to load contact links.</p>";
-      });
+      .catch(() => contactContainer.innerHTML = "<p style='color:red;'>⚠️ Failed to load contact links.</p>");
   </script>
 
   <style>
+    /* ===== QUANTITY SELECTOR ===== */
+    .quantity-selector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .qty-btn {
+      background: #ff4081;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      transition: 0.3s;
+    }
+    .qty-btn:hover { transform: scale(1.1); }
+    .qty { font-weight: 600; }
+
+    /* ===== CART POPUP ===== */
+    .cart-popup {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(50px);
+      background: #333;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 15px;
+      opacity: 0;
+      transition: all 0.4s ease;
+      z-index: 9999;
+    }
+    .cart-popup.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ===== FADE-IN ===== */
+    .fade-in {
+      animation: fadeIn 0.6s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     /* ===== CONTACT BUTTONS ===== */
     .contact-buttons {
       display: flex;
@@ -231,11 +309,8 @@
       transform: scale(1.08);
       filter: brightness(1.15);
     }
-    .contact-btn i {
-      font-size: 18px;
-    }
 
-    /* ===== FLOATING CART BUTTON ===== */
+    /* ===== FLOATING CART ===== */
     .floating-cart {
       position: fixed;
       bottom: 20px;
@@ -261,7 +336,7 @@
       .floating-cart { display: none; }
     }
 
-    /* ===== MOBILE MENU STYLE ===== */
+    /* ===== MOBILE MENU ===== */
     @media (max-width: 768px) {
       nav ul {
         display: none;
@@ -276,17 +351,10 @@
         padding: 15px 0;
         z-index: 999;
       }
-
       nav ul.show {
         display: flex;
         animation: fadeIn 0.3s ease-in-out;
       }
-
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
       .menu-toggle {
         display: block;
         cursor: pointer;
