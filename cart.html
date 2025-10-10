@@ -8,9 +8,136 @@
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="images/favicon.png" />
+
+  <style>
+    /* ===== CART PAGE SPECIFIC STYLES ===== */
+    body.cart-page header {
+      position: static !important;
+      box-shadow: none !important;
+      background: white;
+    }
+
+    .cart-container {
+      max-width: 800px;
+      margin: 120px auto 60px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .cart-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .cart-item img {
+      width: 70px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-right: 15px;
+    }
+
+    .cart-item-info {
+      flex: 1;
+    }
+
+    .total {
+      font-weight: 600;
+      text-align: right;
+      margin-top: 20px;
+    }
+
+    .checkout-btn {
+      background: #ff4081;
+      color: #fff;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 25px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .checkout-btn:hover {
+      background: #e73370;
+      transform: scale(1.05);
+    }
+
+    .remove-btn {
+      background: #f44336;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .remove-btn:hover {
+      background: #d32f2f;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #555;
+      font-size: 14px;
+    }
+
+    /* ===== MOBILE MENU ===== */
+    #menu-toggle {
+      display: none;
+      cursor: pointer;
+      font-size: 26px;
+      user-select: none;
+    }
+
+    @media (max-width: 768px) {
+      #menu-toggle {
+        display: block;
+      }
+
+      nav ul {
+        display: none;
+        flex-direction: column;
+        background: #fff;
+        position: absolute;
+        top: 80px;
+        right: 20px;
+        width: 200px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        border-radius: 12px;
+      }
+
+      nav ul.active {
+        display: flex;
+      }
+
+      nav ul li {
+        text-align: right;
+        margin: 10px;
+      }
+
+      .cart-container {
+        margin-top: 100px;
+        padding: 15px;
+      }
+    }
+  </style>
 </head>
 
-<body>
+<body class="cart-page">
   <!-- ===== HEADER ===== -->
   <header>
     <div class="logo">
@@ -18,7 +145,9 @@
       <h1>MAY’s Handmade</h1>
     </div>
 
-    <nav>
+    <div class="menu-toggle" id="menu-toggle">☰</div>
+
+    <nav id="nav-menu">
       <ul>
         <li><a href="index.html#home">Home</a></li>
         <li><a href="index.html#about">About</a></li>
@@ -115,8 +244,8 @@
       }
     });
 
-    // ✅ Checkout → Send to Formspree using JSON (CORS safe)
-    checkoutBtn.addEventListener("click", async () => {
+    // ✅ Checkout → Formspree
+    checkoutBtn.addEventListener("click", () => {
       let cart = JSON.parse(localStorage.getItem('cart')) || [];
       if (cart.length === 0) return alert("Your cart is empty!");
 
@@ -136,34 +265,37 @@
         Time: new Date().toLocaleString()
       };
 
-      try {
-        const response = await fetch("https://formspree.io/f/manppwon", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          body: JSON.stringify(orderData)
-        });
+      alert("✅ ကျေးဇူးတင်ပါတယ်! သင့် order ကို confirm လုပ်ဖို့ ဆက်သွယ်ပါမယ်။");
+      localStorage.removeItem("cart");
+      renderCart([]);
 
-        if (response.ok) {
-          alert("✅ ကျေးဇူးတင်ပါတယ်! သင့် order ကို confirm လုပ်ဖို့ ဆက်သွယ်ပါမယ်။");
-          localStorage.removeItem("cart");
-          renderCart([]);
-        } else {
-          alert("⚠️ Something went wrong. Please try again later.");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("⚠️ Network error. Try again later!");
-      }
-    });
-
-    window.addEventListener('scroll', () => {
-      document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50);
+      fetch("https://formspree.io/f/xkgqqoev", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(orderData)
+      }).catch(err => console.warn("Background send failed:", err));
     });
 
     displayLocalCart();
+
+    // ✅ MOBILE MENU TOGGLE
+    const menuToggle = document.getElementById('menu-toggle');
+    const navMenu = document.getElementById('nav-menu');
+
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('active');
+      menuToggle.classList.toggle('open');
+    });
+
+    document.querySelectorAll('nav a').forEach(link => {
+      link.addEventListener('click', () => {
+        navMenu.classList.remove('active');
+        menuToggle.classList.remove('open');
+      });
+    });
   </script>
 </body>
 </html>

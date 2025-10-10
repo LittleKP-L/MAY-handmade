@@ -28,6 +28,12 @@ header {
   flex-wrap: wrap;
 }
 
+/* 🛠️ Cart Page မှာ header ကို fixed မဖြစ်အောင် */
+body.cart-page header {
+  position: static;
+  box-shadow: none;
+}
+
 header.scrolled {
   background-color: #ffdbe5;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -293,6 +299,96 @@ nav a:hover {
   transform: translateY(-3px);
 }
 
+/* ===== Contact Section ===== */
+.contact {
+  background-color: #fff5f7;
+  border-top: 2px solid #ffdbe5;
+  border-bottom: 2px solid #ffdbe5;
+  padding: 60px 10%;
+  text-align: center;
+}
+
+.contact h2 {
+  color: #e26d77;
+  margin-bottom: 15px;
+  font-size: 2rem;
+}
+
+.contact p {
+  color: #666;
+  font-size: 1rem;
+  margin-bottom: 25px;
+}
+
+.contact-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+}
+
+.contact-btn {
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.contact-btn i {
+  font-size: 18px;
+}
+
+.contact-btn:hover {
+  transform: scale(1.08);
+  filter: brightness(1.15);
+}
+
+/* Brand Colors */
+.viber { background-color: #7360f2; }
+.tiktok { background-color: #000000; }
+.whatsapp { background-color: #25D366; }
+.messenger { background-color: #0084FF; }
+.instagram { background-color: #E1306C; }
+.facebook { background-color: #1877F2; }
+.telegram { background-color: #0088CC; }
+
+/* ===== Floating Cart Button (Mobile Only) ===== */
+.floating-cart {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #e26d77;
+  color: white;
+  font-size: 20px;
+  padding: 12px 18px;
+  border-radius: 50px;
+  text-decoration: none;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.3s ease;
+}
+
+.floating-cart:hover {
+  transform: scale(1.1);
+  background: #d65b66;
+}
+
+@media (min-width: 768px) {
+  .floating-cart {
+    display: none;
+  }
+}
+
 /* ===== Footer ===== */
 footer {
   background-color: #ffe5ec;
@@ -306,23 +402,10 @@ footer {
 
 /* ===== Responsive Design ===== */
 @media (max-width: 1024px) {
-  .logo h1 {
-    font-size: 1.5rem;
-  }
-
-  nav ul {
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
-  }
-
-  .hero h2 {
-    font-size: 2rem;
-  }
-
-  .hero p {
-    font-size: 1rem;
-  }
+  .logo h1 { font-size: 1.5rem; }
+  nav ul { justify-content: center; gap: 15px; flex-wrap: wrap; }
+  .hero h2 { font-size: 2rem; }
+  .hero p { font-size: 1rem; }
 }
 
 /* ===== Mobile Menu (Responsive Header) ===== */
@@ -357,49 +440,18 @@ footer {
     margin-top: 10px;
   }
 
-  nav ul.show {
-    display: flex;
-  }
-
-  nav ul li {
-    margin: 10px 0;
-    text-align: left;
-  }
-
-  .hero {
-    height: 60vh;
-  }
-
-  .hero-text {
-    padding: 25px 20px;
-  }
-
-  .product-grid {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 20px;
-  }
-
-  .cart-container {
-    padding: 25px 20px;
-  }
-
-  .cart-item {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .cart-item img {
-    margin-bottom: 10px;
-  }
-
-  .cart-item-info {
-    margin-left: 0;
-  }
-
-  .total {
-    text-align: center;
-  }
+  nav ul.show { display: flex; }
+  nav ul li { margin: 10px 0; text-align: left; }
+  .hero { height: 60vh; }
+  .hero-text { padding: 25px 20px; }
+  .product-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
+  .cart-container { padding: 25px 20px; }
+  .cart-item { flex-direction: column; align-items: center; text-align: center; }
+  .cart-item img { margin-bottom: 10px; }
+  .cart-item-info { margin-left: 0; }
+  .total { text-align: center; }
+  .contact-buttons { flex-direction: column; align-items: center; }
+  .contact-btn { width: 80%; justify-content: center; font-size: 16px; }
 }
 
 /* ===== Small Devices ===== */
@@ -409,33 +461,11 @@ footer {
     padding: 60px 0;
   }
 
-  .hero h2 {
-    font-size: 1.6rem;
-  }
-
-  .hero p {
-    font-size: 0.95rem;
-  }
-
-  nav ul {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .section {
-    padding: 50px 6%;
-  }
-
-  .product-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .btn {
-    padding: 10px 22px;
-    font-size: 0.9rem;
-  }
-
-  .checkout-btn {
-    width: 100%;
-  }
+  .hero h2 { font-size: 1.6rem; }
+  .hero p { font-size: 0.95rem; }
+  nav ul { flex-direction: column; align-items: center; }
+  .section { padding: 50px 6%; }
+  .product-grid { grid-template-columns: 1fr; }
+  .btn { padding: 10px 22px; font-size: 0.9rem; }
+  .checkout-btn { width: 100%; }
 }

@@ -7,7 +7,10 @@
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-  
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
   <!-- Stylesheet -->
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/png" href="images/favicon.png" />
@@ -32,6 +35,9 @@
       </ul>
     </nav>
   </header>
+
+  <!-- 🛒 Floating Cart Button (for mobile only) -->
+  <a href="cart.html" class="floating-cart">🛍️ <span id="floating-cart-count">0</span></a>
 
   <!-- ===== HERO ===== -->
   <section id="home" class="hero">
@@ -61,9 +67,11 @@
 
   <!-- ===== CONTACT ===== -->
   <section id="contact" class="section contact">
-    <h2>Contact</h2>
-    <p>Have a question or want to order a custom bag? Reach out below!</p>
-    <a href="mailto:thehandmadebymay@gmail.com" class="btn">Email Us</a>
+    <h2>Contact Us</h2>
+    <p>Choose your preferred platform to contact us:</p>
+    <div id="contact-buttons" class="contact-buttons">
+      <p>Loading contact options...</p>
+    </div>
   </section>
 
   <!-- ===== FOOTER ===== -->
@@ -73,115 +81,175 @@
 
   <!-- ===== JS ===== -->
   <script>
-    // ===== Mobile Menu Toggle =====
+    // ===== Mobile Menu =====
     const menuToggle = document.querySelector('.menu-toggle');
     const navMenu = document.querySelector('nav ul');
+    menuToggle.addEventListener('click', () => navMenu.classList.toggle('show'));
 
-    menuToggle.addEventListener('click', () => {
-      navMenu.classList.toggle('show');
-    });
-
-    // ===== Product + Cart Script =====
+    // ===== Product Loader =====
     const productGrid = document.getElementById('product-grid');
     const cartCount = document.getElementById('cart-count');
+    const floatingCartCount = document.getElementById('floating-cart-count');
 
     async function loadProducts() {
       try {
         const res = await fetch('https://script.google.com/macros/s/AKfycbzDXeNqUzFEyKfs_NBFZAVY2SnP8d7N_kV-nbRAFw5KdKdd3aLXla-P0wRCc0N85aLX/exec');
         const products = await res.json();
-
-        if (!Array.isArray(products)) throw new Error("Invalid JSON format");
-
-        // ✅ Fix relative image paths
         products.forEach(p => {
           if (p.img && !p.img.startsWith("http")) {
-            p.img = p.img.trim();
-            if (!p.img.startsWith("images/")) {
-              p.img = "images/" + p.img;
-            }
+            if (!p.img.startsWith("images/")) p.img = "images/" + p.img;
           }
         });
-
         displayProducts(products);
-      } catch (error) {
-        console.error("Error loading products:", error);
-        productGrid.innerHTML = "<p style='color:red;'>⚠️ Failed to load products. Please try again later.</p>";
+      } catch (err) {
+        productGrid.innerHTML = "<p style='color:red;'>⚠️ Failed to load products.</p>";
       }
     }
 
     function displayProducts(products) {
       productGrid.innerHTML = '';
-
-      products.forEach(product => {
+      products.forEach(p => {
         const div = document.createElement('div');
-        div.classList.add('product');
+        div.className = "product";
         div.innerHTML = `
-          <img src="${product.img}" alt="${product.name}" loading="lazy" />
-          <h3>${product.name}</h3>
-          <p>Price: ${parseInt(product.price).toLocaleString()} MMK</p>
+          <img src="${p.img}" alt="${p.name}" loading="lazy" />
+          <h3>${p.name}</h3>
+          <p>Price: ${parseInt(p.price).toLocaleString()} MMK</p>
           <div class="button-group">
-            <button class="btn add-to-cart" 
-              data-id="${product.id}" 
-              data-name="${product.name}" 
-              data-price="${product.price}" 
-              data-img="${product.img}">
-              Add to Cart
-            </button>
-            <button class="btn buy-now" 
-              data-id="${product.id}" 
-              data-name="${product.name}" 
-              data-price="${product.price}" 
-              data-img="${product.img}">
-              Buy Now
-            </button>
+            <button class="btn add-to-cart" data-name="${p.name}" data-price="${p.price}" data-img="${p.img}">Add to Cart</button>
+            <button class="btn buy-now" data-name="${p.name}" data-price="${p.price}" data-img="${p.img}">Buy Now</button>
           </div>
         `;
         productGrid.appendChild(div);
       });
-
       setupButtons();
     }
 
     function setupButtons() {
-      document.querySelectorAll('.add-to-cart').forEach(button => {
-        button.addEventListener('click', () => {
-          const product = {
-            id: button.dataset.id,
-            name: button.dataset.name,
-            price: parseFloat(button.dataset.price),
-            img: button.dataset.img,
-            currency: "MMK"
-          };
+      document.querySelectorAll('.add-to-cart').forEach(btn => {
+        btn.onclick = () => {
           let cart = JSON.parse(localStorage.getItem('cart')) || [];
+          const product = {
+            name: btn.dataset.name,
+            price: parseFloat(btn.dataset.price),
+            img: btn.dataset.img
+          };
           cart.push(product);
           localStorage.setItem('cart', JSON.stringify(cart));
           updateCartCount();
           alert(`${product.name} added to cart!`);
-        });
+        };
       });
-
-      document.querySelectorAll('.buy-now').forEach(button => {
-        button.addEventListener('click', () => {
+      document.querySelectorAll('.buy-now').forEach(btn => {
+        btn.onclick = () => {
           const product = {
-            id: button.dataset.id,
-            name: button.dataset.name,
-            price: parseFloat(button.dataset.price),
-            img: button.dataset.img,
-            currency: "MMK"
+            name: btn.dataset.name,
+            price: parseFloat(btn.dataset.price),
+            img: btn.dataset.img
           };
           localStorage.setItem('cart', JSON.stringify([product]));
           window.location.href = 'cart.html';
-        });
+        };
       });
     }
 
     function updateCartCount() {
       const cart = JSON.parse(localStorage.getItem('cart')) || [];
       cartCount.textContent = cart.length;
+      floatingCartCount.textContent = cart.length;
     }
 
     updateCartCount();
     loadProducts();
+
+    // ===== CONTACT LINKS (with brand color) =====
+    const contactContainer = document.getElementById("contact-buttons");
+
+    const contactStyles = {
+      whatsapp: { icon: "fa-brands fa-whatsapp", color: "#25D366" },
+      telegram: { icon: "fa-brands fa-telegram", color: "#229ED9" },
+      messenger: { icon: "fa-brands fa-facebook-messenger", color: "#0084FF" },
+      viber: { icon: "fa-brands fa-viber", color: "#7360F2" },
+      tiktok: { icon: "fa-brands fa-tiktok", color: "#000000" },
+      instagram: { icon: "fa-brands fa-instagram", color: "#E4405F" },
+      facebook: { icon: "fa-brands fa-facebook", color: "#1877F2" }
+    };
+
+    fetch("https://script.google.com/macros/s/AKfycbyAGuRgOmll3TUv8loI2YGWWJHzioKT7Ns-WfdsRFFZhPy8R_4_SPzZ8TW4UIszryaj/exec")
+      .then(res => res.json())
+      .then(data => {
+        contactContainer.innerHTML = '';
+        data.forEach(item => {
+          const platform = item.platform.toLowerCase();
+          const info = contactStyles[platform] || { icon: "fa-solid fa-link", color: "#555" };
+
+          const btn = document.createElement("a");
+          btn.href = item.url;
+          btn.target = "_blank";
+          btn.className = "contact-btn";
+          btn.style.backgroundColor = info.color;
+          btn.innerHTML = `<i class="${info.icon}"></i> ${item.platform}`;
+          contactContainer.appendChild(btn);
+        });
+      })
+      .catch(err => {
+        contactContainer.innerHTML = "<p style='color:red;'>⚠️ Failed to load contact links.</p>";
+      });
   </script>
+
+  <style>
+    /* ===== CONTACT BUTTONS ===== */
+    .contact-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .contact-btn {
+      color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: 0.3s;
+    }
+    .contact-btn:hover {
+      transform: scale(1.08);
+      filter: brightness(1.15);
+    }
+    .contact-btn i {
+      font-size: 18px;
+    }
+
+    /* ===== FLOATING CART BUTTON ===== */
+    .floating-cart {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff4081;
+      color: white;
+      font-size: 20px;
+      padding: 12px 18px;
+      border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.3s ease;
+    }
+    .floating-cart:hover {
+      transform: scale(1.1);
+      background: #e73370;
+    }
+    @media (min-width: 768px) {
+      .floating-cart { display: none; }
+    }
+  </style>
 </body>
 </html>
