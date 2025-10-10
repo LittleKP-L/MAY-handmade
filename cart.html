@@ -50,15 +50,60 @@
     .cart-item img { width: 70px; height: 70px; object-fit: cover; border-radius: 10px; margin-right: 15px; }
     .cart-item-info { flex: 1; }
 
+    /* Quantity Controls */
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .qty-btn {
+      background-color: #ffe5ec;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 18px;
+      color: #e26d77;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    .qty-btn:hover {
+      background-color: #e26d77;
+      color: white;
+    }
+    .qty {
+      min-width: 25px;
+      text-align: center;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .remove-btn {
+      background: #ff7070;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .remove-btn:hover { background: #e94e4e; }
+
     .total { font-weight: 600; text-align: right; margin-top: 20px; }
-    .checkout-btn, .remove-btn {
+    .checkout-btn {
+      background: #ff4081; color: #fff;
       border: none; padding: 12px 25px; border-radius: 25px;
       font-size: 16px; cursor: pointer; transition: 0.3s;
     }
-    .checkout-btn { background: #ff4081; color: #fff; }
     .checkout-btn:hover { background: #e73370; transform: scale(1.05); }
-    .remove-btn { background: #f44336; color: white; border-radius: 8px; padding: 8px 14px; }
-    .remove-btn:hover { background: #d32f2f; }
+
+    .delivery-note {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+      font-style: italic;
+      margin-top: 10px;
+    }
 
     footer { margin-top: 40px; text-align: center; color: #555; font-size: 14px; padding-bottom: 80px; }
 
@@ -101,6 +146,8 @@
     <div id="cart-items" class="cart-items"></div>
     <div id="cart-total" class="total"></div>
 
+    <p class="delivery-note">Cash on Delivery available • Mandalay only</p>
+
     <div class="cart-actions">
       <button id="checkout-btn" class="checkout-btn">Proceed to Checkout</button>
       <button id="clear-cart" class="remove-btn" style="margin-top:10px;">Clear Cart</button>
@@ -118,38 +165,31 @@
     const cartCount = document.getElementById('cart-count');
     const checkoutBtn = document.getElementById('checkout-btn');
     const clearBtn = document.getElementById('clear-cart');
-
     let deliveryFee = 0;
 
     async function fetchDeliveryFee() {
       try {
         const res = await fetch(SHEET_URL);
         const data = await res.json();
-        if (data.length > 0 && data[0].deliveryFee) {
-          deliveryFee = parseInt(data[0].deliveryFee);
-        } else {
-          deliveryFee = 3000;
-        }
-      } catch (e) {
-        console.warn("Delivery fee load error:", e);
+        deliveryFee = data[0]?.deliveryFee ? parseInt(data[0].deliveryFee) : 3000;
+      } catch {
         deliveryFee = 3000;
       }
     }
 
-    function displayLocalCart() {
+    function updateCartCount() {
       const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      renderCart(cart);
+      cartCount.textContent = cart.reduce((sum, i) => sum + (i.qty || 1), 0);
     }
 
     async function renderCart(cart) {
       cartContainer.innerHTML = "";
-
       if (cart.length === 0) {
         cartContainer.innerHTML = "<p style='text-align:center; color:#777;'>Your cart is empty 👜</p>";
         totalDisplay.textContent = "";
         checkoutBtn.style.display = "none";
         clearBtn.style.display = "none";
-        cartCount.textContent = "0";
+        updateCartCount();
         return;
       }
 
@@ -157,29 +197,29 @@
       checkoutBtn.style.display = "inline-block";
       clearBtn.style.display = "inline-block";
 
-      // Update total items count
-      const totalQty = cart.reduce((sum, i) => sum + (i.qty || 1), 0);
-      cartCount.textContent = totalQty;
-
       let subtotal = 0;
       cart.forEach((item, index) => {
         const qty = item.qty || 1;
         const itemTotal = item.price * qty;
         subtotal += itemTotal;
 
-        const itemDiv = document.createElement("div");
-        itemDiv.classList.add("cart-item");
-        itemDiv.innerHTML = `
+        const div = document.createElement("div");
+        div.classList.add("cart-item");
+        div.innerHTML = `
           <img src="${item.img}" alt="${item.name}">
           <div class="cart-item-info">
             <h3>${item.name}</h3>
             <p>Price: ${item.price.toLocaleString()} MMK</p>
-            <p>Quantity: <strong>${qty}</strong></p>
+            <div class="quantity-controls">
+              <button class="qty-btn" onclick="changeQty(${index}, -1)">−</button>
+              <span class="qty">${qty}</span>
+              <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
+            </div>
             <p>Total: <strong>${itemTotal.toLocaleString()} MMK</strong></p>
           </div>
-          <button class="remove-btn" data-index="${index}">Remove</button>
+          <button class="remove-btn" onclick="removeItem(${index})">Remove</button>
         `;
-        cartContainer.appendChild(itemDiv);
+        cartContainer.appendChild(div);
       });
 
       const total = subtotal + deliveryFee;
@@ -188,19 +228,22 @@
         Delivery Fee: ${deliveryFee.toLocaleString()} MMK<br>
         <strong>Total: ${total.toLocaleString()} MMK</strong>
       `;
+      updateCartCount();
+    }
 
-      document.querySelectorAll(".remove-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const index = btn.getAttribute("data-index");
-          removeItem(index);
-        });
-      });
+    function changeQty(index, delta) {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      if (!cart[index]) return;
+      cart[index].qty = (cart[index].qty || 1) + delta;
+      if (cart[index].qty < 1) cart[index].qty = 1;
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart(cart);
     }
 
     function removeItem(index) {
-      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
       cart.splice(index, 1);
-      localStorage.setItem("cart", JSON.stringify(cart));
+      localStorage.setItem('cart', JSON.stringify(cart));
       renderCart(cart);
     }
 
@@ -212,22 +255,21 @@
     });
 
     checkoutBtn.addEventListener("click", async () => {
-      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
       if (cart.length === 0) return alert("Your cart is empty!");
 
       const phoneInput = prompt("Please enter your phone number (09xxxxxxxxxx):", "09");
       if (!phoneInput || !/^09\d{8,9}$/.test(phoneInput)) {
-        alert("⚠️ Please enter a valid 11-digit phone number starting with 09 (e.g. 09123456789).");
+        alert("⚠️ Please enter a valid phone number.");
         return;
       }
 
       await fetchDeliveryFee();
-      const fullPhone = "+95" + phoneInput.substring(1);
       const subtotal = cart.reduce((sum, i) => sum + (i.price * (i.qty || 1)), 0);
       const total = subtotal + deliveryFee;
 
       const orderData = {
-        Phone: fullPhone,
+        Phone: "+95" + phoneInput.substring(1),
         Subtotal: subtotal + " MMK",
         DeliveryFee: deliveryFee + " MMK",
         Total: total + " MMK",
@@ -241,14 +283,14 @@
 
       fetch("https://formspree.io/f/xkgqqoev", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData)
-      }).catch(err => console.warn("Send failed:", err));
+      }).catch(console.warn);
     });
 
-    displayLocalCart();
+    renderCart(JSON.parse(localStorage.getItem('cart')) || []);
 
-    // mobile menu toggle
+    // Mobile menu
     const menuToggle = document.getElementById('menu-toggle');
     const navMenu = document.getElementById('nav-menu');
     menuToggle.addEventListener('click', () => {

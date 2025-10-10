@@ -153,6 +153,7 @@
           qtySpan.textContent = qty;
         };
 
+        // ✅ Add to Cart
         addBtn.onclick = () => {
           const name = addBtn.dataset.name;
           const price = parseFloat(addBtn.dataset.price);
@@ -162,7 +163,7 @@
           const existing = cart.find(item => item.name === name);
 
           if (existing) {
-            existing.qty += qty; // ✅ qty တိုးထည့်
+            existing.qty += qty;
           } else {
             cart.push({ name, price, img, qty });
           }
@@ -172,11 +173,22 @@
           showPopup(`${name} (x${qty}) added to cart!`);
         };
 
+        // ✅ FIXED Buy Now
         buyBtn.onclick = () => {
           const name = buyBtn.dataset.name;
           const price = parseFloat(buyBtn.dataset.price);
           const img = buyBtn.dataset.img;
-          localStorage.setItem('cart', JSON.stringify([{ name, price, img, qty }]));
+
+          let cart = JSON.parse(localStorage.getItem('cart')) || [];
+          const existing = cart.find(item => item.name === name);
+
+          if (existing) {
+            existing.qty += qty;
+          } else {
+            cart.push({ name, price, img, qty });
+          }
+
+          localStorage.setItem('cart', JSON.stringify(cart));
           window.location.href = 'cart.html';
         };
       });
