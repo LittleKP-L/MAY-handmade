@@ -22,10 +22,10 @@
     <div class="logo">
       <img src="images/logo.png" alt="MAY’s Handmade Logo" />
       <h1>MAY’s Handmade</h1>
-      <span class="menu-toggle">☰</span>
+      <span class="menu-toggle" id="menu-toggle">☰</span>
     </div>
 
-    <nav>
+    <nav id="nav-menu">
       <ul>
         <li><a href="#home">Home</a></li>
         <li><a href="#about">About</a></li>
@@ -79,14 +79,26 @@
     <p>© 2025 MAY’s Handmade | Crafted with ❤️ by MAY</p>
   </footer>
 
-  <!-- ===== JS ===== -->
+  <!-- ===== MAIN SCRIPT ===== -->
   <script>
-    // ===== Mobile Menu =====
-    const menuToggle = document.querySelector('.menu-toggle');
+    // ✅ MOBILE MENU TOGGLE
+    const menuToggle = document.getElementById('menu-toggle');
     const navMenu = document.querySelector('nav ul');
-    menuToggle.addEventListener('click', () => navMenu.classList.toggle('show'));
 
-    // ===== Product Loader =====
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('show');
+    });
+
+    // ✅ AUTO CLOSE MENU WHEN LINK CLICKED (Mobile)
+    document.querySelectorAll('nav a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          navMenu.classList.remove('show');
+        }
+      });
+    });
+
+    // ✅ PRODUCTS FROM GOOGLE SHEET
     const productGrid = document.getElementById('product-grid');
     const cartCount = document.getElementById('cart-count');
     const floatingCartCount = document.getElementById('floating-cart-count');
@@ -162,9 +174,8 @@
     updateCartCount();
     loadProducts();
 
-    // ===== CONTACT LINKS (with brand color) =====
+    // ✅ CONTACT LINKS (Auto Brand Colors)
     const contactContainer = document.getElementById("contact-buttons");
-
     const contactStyles = {
       whatsapp: { icon: "fa-brands fa-whatsapp", color: "#25D366" },
       telegram: { icon: "fa-brands fa-telegram", color: "#229ED9" },
@@ -182,7 +193,6 @@
         data.forEach(item => {
           const platform = item.platform.toLowerCase();
           const info = contactStyles[platform] || { icon: "fa-solid fa-link", color: "#555" };
-
           const btn = document.createElement("a");
           btn.href = item.url;
           btn.target = "_blank";
@@ -192,7 +202,7 @@
           contactContainer.appendChild(btn);
         });
       })
-      .catch(err => {
+      .catch(() => {
         contactContainer.innerHTML = "<p style='color:red;'>⚠️ Failed to load contact links.</p>";
       });
   </script>
@@ -249,6 +259,40 @@
     }
     @media (min-width: 768px) {
       .floating-cart { display: none; }
+    }
+
+    /* ===== MOBILE MENU STYLE ===== */
+    @media (max-width: 768px) {
+      nav ul {
+        display: none;
+        flex-direction: column;
+        background: #fff;
+        position: absolute;
+        top: 70px;
+        right: 20px;
+        width: 200px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        border-radius: 12px;
+        padding: 15px 0;
+        z-index: 999;
+      }
+
+      nav ul.show {
+        display: flex;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .menu-toggle {
+        display: block;
+        cursor: pointer;
+        font-size: 26px;
+        margin-left: auto;
+      }
     }
   </style>
 </body>
