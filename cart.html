@@ -200,6 +200,7 @@
       cart.forEach((item, index) => {
         const div = document.createElement("div");
         div.classList.add("cart-item");
+        div.dataset.index = index;
         div.innerHTML = `
           <img src="${item.img}" alt="${item.name}">
           <div class="cart-item-info">
@@ -212,7 +213,7 @@
             </div>
             <p class="item-total">Total: <strong>${(item.price * (item.qty || 1)).toLocaleString()} MMK</strong></p>
           </div>
-          <button class="remove-btn" onclick="removeItem(${index})">Remove</button>
+          <button class="remove-btn">Remove</button>
         `;
         cartContainer.appendChild(div);
       });
@@ -220,11 +221,33 @@
       updateTotalDisplay(cart);
       updateCartCount();
 
-      // attach event listeners for +/-
       cartContainer.querySelectorAll(".quantity-controls").forEach(ctrl => {
         const index = parseInt(ctrl.dataset.index);
         ctrl.querySelector(".minus").onclick = () => changeQty(index, -1);
         ctrl.querySelector(".plus").onclick = () => changeQty(index, 1);
+      });
+
+      // ✅ remove buttons (no refresh)
+      cartContainer.querySelectorAll(".remove-btn").forEach((btn, i) => {
+        btn.onclick = () => {
+          const cart = JSON.parse(localStorage.getItem('cart')) || [];
+          cart.splice(i, 1);
+          localStorage.setItem('cart', JSON.stringify(cart));
+
+          // remove item visually
+          const itemDiv = btn.closest(".cart-item");
+          itemDiv.remove();
+
+          if (cart.length === 0) {
+            cartContainer.innerHTML = "<p style='text-align:center; color:#777;'>Your cart is empty 👜</p>";
+            checkoutBtn.style.display = "none";
+            clearBtn.style.display = "none";
+            totalDisplay.textContent = "";
+          } else {
+            updateTotalDisplay(cart);
+          }
+          updateCartCount();
+        };
       });
     }
 
@@ -244,7 +267,6 @@
       cart[index].qty = Math.max(1, (cart[index].qty || 1) + delta);
       localStorage.setItem('cart', JSON.stringify(cart));
 
-      // Update only the changed item visually
       const itemDiv = cartContainer.querySelectorAll(".cart-item")[index];
       const qtyEl = itemDiv.querySelector(".qty");
       const totalEl = itemDiv.querySelector(".item-total strong");
@@ -253,13 +275,6 @@
 
       updateTotalDisplay(cart);
       updateCartCount();
-    }
-
-    function removeItem(index) {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      cart.splice(index, 1);
-      localStorage.setItem('cart', JSON.stringify(cart));
-      renderCart(cart);
     }
 
     clearBtn.addEventListener("click", () => {
@@ -305,7 +320,6 @@
 
     renderCart(JSON.parse(localStorage.getItem('cart')) || []);
 
-    // Mobile menu
     const menuToggle = document.getElementById('menu-toggle');
     const navMenu = document.getElementById('nav-menu');
     menuToggle.addEventListener('click', () => {
