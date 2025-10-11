@@ -1,4 +1,4 @@
-<!-- ✅ index.html (Updated – Hide Price, Keep Everything Else) -->
+<!-- ✅ index.html (Improved – No Reload Delay When Coming Back) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -87,27 +87,13 @@
       });
     });
 
-    // ✅ PRODUCT LOAD
+    // ====== PRODUCT & CONTACT LOGIC ======
     const productGrid = document.getElementById('product-grid');
+    const contactContainer = document.getElementById("contact-buttons");
     const cartCount = document.getElementById('cart-count');
     const floatingCartCount = document.getElementById('floating-cart-count');
 
-    async function loadProducts() {
-      try {
-        const res = await fetch('https://script.google.com/macros/s/AKfycbzDXeNqUzFEyKfs_NBFZAVY2SnP8d7N_kV-nbRAFw5KdKdd3aLXla-P0wRCc0N85aLX/exec');
-        const products = await res.json();
-        products.forEach(p => {
-          if (p.img && !p.img.startsWith("http")) {
-            if (!p.img.startsWith("images/")) p.img = "images/" + p.img;
-          }
-        });
-        displayProducts(products);
-      } catch {
-        productGrid.innerHTML = "<p style='color:red;'>⚠️ Failed to load products.</p>";
-      }
-    }
-
-    // ✅ DISPLAY PRODUCTS (Click to go to Detail) — no price shown
+    // ✅ DISPLAY PRODUCTS (Hide price)
     function displayProducts(products) {
       productGrid.innerHTML = '';
       products.forEach(p => {
@@ -117,7 +103,6 @@
           <img src="${p.img}" alt="${p.name}" loading="lazy" />
           <h3>${p.name}</h3>
         `;
-        // when clicked → go to product detail
         div.addEventListener('click', () => {
           localStorage.setItem('selectedProduct', JSON.stringify(p));
           window.location.href = 'product.html';
@@ -126,19 +111,29 @@
       });
     }
 
-    // ✅ CART COUNT UPDATE
-    function updateCartCount() {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      const total = cart.reduce((sum, p) => sum + (p.qty || 1), 0);
-      cartCount.textContent = total;
-      floatingCartCount.textContent = total;
+    // ✅ LOAD PRODUCTS (with cache)
+    async function loadProducts() {
+      const cached = sessionStorage.getItem("cachedProducts");
+      if (cached) {
+        displayProducts(JSON.parse(cached));
+        return;
+      }
+      try {
+        const res = await fetch('https://script.google.com/macros/s/AKfycbzDXeNqUzFEyKfs_NBFZAVY2SnP8d7N_kV-nbRAFw5KdKdd3aLXla-P0wRCc0N85aLX/exec');
+        const products = await res.json();
+        products.forEach(p => {
+          if (p.img && !p.img.startsWith("http")) {
+            if (!p.img.startsWith("images/")) p.img = "images/" + p.img;
+          }
+        });
+        displayProducts(products);
+        sessionStorage.setItem("cachedProducts", JSON.stringify(products));
+      } catch {
+        productGrid.innerHTML = "<p style='color:red;'>⚠️ Failed to load products.</p>";
+      }
     }
 
-    updateCartCount();
-    loadProducts();
-
-    // ✅ CONTACT BUTTONS
-    const contactContainer = document.getElementById("contact-buttons");
+    // ✅ CONTACT STYLES
     const contactStyles = {
       whatsapp: { icon: "fa-brands fa-whatsapp", color: "#25D366" },
       telegram: { icon: "fa-brands fa-telegram", color: "#229ED9" },
@@ -149,23 +144,50 @@
       facebook: { icon: "fa-brands fa-facebook", color: "#1877F2" }
     };
 
-    fetch("https://script.google.com/macros/s/AKfycbyAGuRgOmll3TUv8loI2YGWWJHzioKT7Ns-WfdsRFFZhPy8R_4_SPzZ8TW4UIszryaj/exec")
-      .then(res => res.json())
-      .then(data => {
-        contactContainer.innerHTML = '';
-        data.forEach(item => {
-          const platform = item.platform.toLowerCase();
-          const info = contactStyles[platform] || { icon: "fa-solid fa-link", color: "#555" };
-          const btn = document.createElement("a");
-          btn.href = item.url;
-          btn.target = "_blank";
-          btn.className = "contact-btn";
-          btn.style.backgroundColor = info.color;
-          btn.innerHTML = `<i class="${info.icon}"></i> ${item.platform}`;
-          contactContainer.appendChild(btn);
-        });
-      })
-      .catch(() => contactContainer.innerHTML = "<p style='color:red;'>⚠️ Failed to load contact links.</p>");
+    // ✅ LOAD CONTACTS (with cache)
+    async function loadContacts() {
+      const cached = sessionStorage.getItem("cachedContacts");
+      if (cached) {
+        renderContacts(JSON.parse(cached));
+        return;
+      }
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbyAGuRgOmll3TUv8loI2YGWWJHzioKT7Ns-WfdsRFFZhPy8R_4_SPzZ8TW4UIszryaj/exec");
+        const data = await res.json();
+        renderContacts(data);
+        sessionStorage.setItem("cachedContacts", JSON.stringify(data));
+      } catch {
+        contactContainer.innerHTML = "<p style='color:red;'>⚠️ Failed to load contact links.</p>";
+      }
+    }
+
+    function renderContacts(data) {
+      contactContainer.innerHTML = '';
+      data.forEach(item => {
+        const platform = item.platform.toLowerCase();
+        const info = contactStyles[platform] || { icon: "fa-solid fa-link", color: "#555" };
+        const btn = document.createElement("a");
+        btn.href = item.url;
+        btn.target = "_blank";
+        btn.className = "contact-btn";
+        btn.style.backgroundColor = info.color;
+        btn.innerHTML = `<i class="${info.icon}"></i> ${item.platform}`;
+        contactContainer.appendChild(btn);
+      });
+    }
+
+    // ✅ CART COUNT
+    function updateCartCount() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const total = cart.reduce((sum, p) => sum + (p.qty || 1), 0);
+      cartCount.textContent = total;
+      floatingCartCount.textContent = total;
+    }
+
+    // ✅ INIT
+    updateCartCount();
+    loadProducts();
+    loadContacts();
   </script>
 </body>
 </html>
