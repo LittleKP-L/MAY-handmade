@@ -88,11 +88,56 @@
       text-decoration: none;
       color: #555;
     }
+
+    /* ✅ Floating Cart Icon */
+    .floating-cart {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff4081;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-size: 18px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 999;
+    }
+    .floating-cart span {
+      background: #fff;
+      color: #ff4081;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: bold;
+      margin-left: 5px;
+    }
+
+    /* ✅ Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: #333;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+      z-index: 1000;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body>
 
   <a href="index.html#products" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Products</a>
+
+  <!-- 🛍️ Floating Cart -->
+  <a href="cart.html" class="floating-cart">🛍️ <span id="floating-cart-count">0</span></a>
 
   <div class="product-detail">
     <img id="product-img" src="" alt="Product Image">
@@ -114,6 +159,9 @@
     </div>
   </div>
 
+  <!-- ✅ Toast -->
+  <div id="toast" class="toast">Added to cart!</div>
+
   <script>
     const product = JSON.parse(localStorage.getItem('selectedProduct'));
     const nameEl = document.getElementById('product-name');
@@ -121,6 +169,7 @@
     const imgEl = document.getElementById('product-img');
     const descEl = document.getElementById('product-desc');
     const qtyEl = document.getElementById('qty');
+    const toast = document.getElementById('toast');
     let qty = 1;
 
     if (!product) {
@@ -145,7 +194,8 @@
       if (existing) existing.qty += qty;
       else cart.push({ ...product, qty });
       localStorage.setItem('cart', JSON.stringify(cart));
-      alert(`${product.name} (x${qty}) added to cart!`);
+      showToast("✅ Added to cart!");
+      updateCartCount();
     };
 
     document.getElementById('buy-now').onclick = () => {
@@ -156,6 +206,21 @@
       localStorage.setItem('cart', JSON.stringify(cart));
       window.location.href = "cart.html";
     };
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2000);
+    }
+
+    // ✅ Floating cart count
+    function updateCartCount() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const total = cart.reduce((sum, p) => sum + (p.qty || 1), 0);
+      document.getElementById('floating-cart-count').textContent = total;
+    }
+
+    updateCartCount();
   </script>
 
 </body>
