@@ -1,364 +1,647 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your Cart | MAY’s Handmade</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Cart | MAY’s Handmade</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" type="image/png" href="images/favicon.png" />
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- ⚠️ Single-File Mandate: All CSS is inline -->
+    <style>
+        :root {
+            --primary-color: #ff4081; /* Pink for accents (အဓိကအရောင်) */
+            --primary-dark: #e73370;
+            --primary-light: #ffe5ec; /* Light pink background (နောက်ခံအဖျော့ရောင်) */
+            --text-dark: #333;
+            --text-medium: #555;
+            --bg-light: #fff;
+            --border-color: #f0f0f0;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+            --danger-color: #ff7070; /* Original light red */
+            --danger-dark: #e94e4e; /* Darker red */
+        }
 
-  <style>
-    body.cart-page header {
-      position: fixed; top: 0; left: 0; width: 100%;
-      background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      z-index: 1000; display: flex; align-items: center;
-      justify-content: space-between; padding: 10px 20px;
-    }
-    .logo { display: flex; align-items: center; gap: 10px; }
-    .logo img { height: 45px; }
-    .site-title {
-      position: absolute; left: 50%; transform: translateX(-50%);
-      font-family: 'Dancing Script', cursive; font-size: 1.6rem;
-      color: #ff4081; margin: 0; white-space: nowrap;
-    }
-    .menu-toggle {
-      cursor: pointer; font-size: 30px; display: none;
-      background: none; border: none; color: #333;
-    }
-    nav ul {
-      list-style: none; display: flex; gap: 20px;
-      align-items: center; margin: 0; padding: 0;
-    }
-    nav ul li a {
-      text-decoration: none; color: #333; font-weight: 500;
-      transition: color 0.3s;
-    }
-    nav ul li a:hover { color: #ff4081; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
 
-    .cart-container {
-      max-width: 800px; margin: 120px auto 60px;
-      padding: 20px; background: #fff; border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .cart-container h2 { text-align: center; margin-bottom: 20px; font-family: 'Poppins', sans-serif; }
-    .cart-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 0; border-bottom: 1px solid #eee;
-    }
-    .cart-item img { width: 70px; height: 70px; object-fit: cover; border-radius: 10px; margin-right: 15px; }
-    .cart-item-info { flex: 1; }
+        body {
+            background-color: #f7f7f7;
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
 
-    .quantity-controls {
-      display: flex; align-items: center; gap: 10px; margin-top: 8px;
-    }
-    .qty-btn {
-      background-color: #ffe5ec; border: none;
-      padding: 6px 12px; border-radius: 8px;
-      font-size: 18px; color: #e26d77; cursor: pointer; transition: 0.3s ease;
-    }
-    .qty-btn:hover { background-color: #e26d77; color: white; }
-    .qty { min-width: 25px; text-align: center; font-weight: 600; color: #333; }
+        /* === HEADER STYLES === */
+        body.cart-page header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: var(--bg-light); box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000; display: flex; align-items: center;
+            justify-content: space-between; padding: 10px 20px;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo img { height: 45px; }
+        .site-title {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            font-family: 'Dancing Script', cursive; font-size: 1.6rem;
+            color: var(--primary-color); margin: 0; white-space: nowrap;
+        }
+        .menu-toggle {
+            cursor: pointer; font-size: 30px; display: none;
+            background: none; border: none; color: #333;
+        }
+        nav ul {
+            list-style: none; display: flex; gap: 20px;
+            align-items: center; margin: 0; padding: 0;
+        }
+        nav ul li a {
+            text-decoration: none; color: #333; font-weight: 500;
+            transition: var(--transition);
+        }
+        nav ul li a:hover { color: var(--primary-color); }
+        .cart-link { font-weight: 700 !important; color: var(--primary-color) !important; }
+        
+        /* Mobile Navigation Toggle */
+        @media (max-width: 768px) {
+            body.cart-page header { justify-content: flex-start; padding: 10px 16px; }
+            .site-title { font-size: 1.5rem; }
+            .menu-toggle { display: block; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); }
+            nav ul {
+                display: none; flex-direction: column; background: var(--bg-light);
+                position: absolute; top: 70px; right: 20px; width: 200px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                border-radius: 12px; padding: 15px 0; z-index: 999;
+            }
+            nav ul.active { display: flex; animation: fadeIn 0.3s ease-in-out; }
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+            nav ul li { text-align: right; margin: 8px 15px; }
+        }
 
-    .remove-btn {
-      background: #ff7070; color: #fff; border: none;
-      padding: 8px 14px; border-radius: 8px; cursor: pointer; transition: 0.3s;
-    }
-    .remove-btn:hover { background: #e94e4e; }
+        /* === RESPONSIVE CART CONTAINER === */
+        .cart-container {
+            max-width: 1200px;
+            margin: 120px auto 60px;
+            padding: 20px; 
+            display: grid;
+            gap: 30px; 
+            grid-template-columns: 1fr;
+        }
+        
+        @media (min-width: 850px) {
+            .cart-container {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
 
-    .total { font-weight: 600; text-align: right; margin-top: 20px; }
-    .checkout-btn {
-      background: #ff4081; color: #fff; border: none;
-      padding: 12px 25px; border-radius: 25px;
-      font-size: 16px; cursor: pointer; transition: 0.3s;
-    }
-    .checkout-btn:hover { background: #e73370; transform: scale(1.05); }
+        /* Styling for List and Summary Wrappers */
+        .cart-list-wrapper, .cart-summary-wrapper {
+            background: var(--bg-light);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
 
-    .delivery-note {
-      text-align: center; font-size: 0.9rem;
-      color: #666; font-style: italic; margin-top: 10px;
-    }
+        .cart-list-wrapper h2 { 
+            text-align: center; margin-bottom: 20px; 
+            font-size: 1.8rem;
+            color: var(--primary-color);
+        }
+        
+        .cart-summary-wrapper {
+            height: fit-content;
+        }
 
-    footer { margin-top: 40px; text-align: center; color: #555; font-size: 14px; padding-bottom: 80px; }
+        .summary-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-dark);
+        }
 
-    @media (max-width: 768px) {
-      body.cart-page header { justify-content: flex-start; padding: 10px 16px; }
-      .site-title { left: 50%; transform: translateX(-50%); font-size: 1.5rem; }
-      .menu-toggle { display: block; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); }
-      nav ul {
-        display: none; flex-direction: column; background: #fff;
-        position: absolute; top: 70px; right: 20px; width: 200px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        border-radius: 12px; padding: 15px 0; z-index: 999;
-      }
-      nav ul.active { display: flex; animation: fadeIn 0.3s ease-in-out; }
-      @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-      nav ul li { text-align: right; margin: 8px 15px; }
-      .cart-container { margin-top: 100px; padding: 15px; }
-    }
+        /* === CART ITEM STYLES === */
+        .cart-item {
+            display: grid;
+            grid-template-columns: 80px 1fr auto; 
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            gap: 15px;
+        }
+        .cart-item:last-child { border-bottom: none; }
 
-    /* ✅ Checkout Modal Style */
-    #checkoutModal {
-      display:none; position:fixed; inset:0;
-      background:rgba(0,0,0,0.5);
-      backdrop-filter: blur(3px);
-      justify-content:center; align-items:center;
-      z-index:2000;
-    }
-    #checkoutModal .modal-content {
-      background:white;
-      padding:25px;
-      border-radius:16px;
-      width:90%; max-width:400px;
-      box-shadow:0 4px 15px rgba(0,0,0,0.2);
-      animation: fadeIn 0.3s ease-in-out;
-    }
-    #checkoutModal input, #checkoutModal textarea {
-      width:100%; padding:10px; margin:8px 0;
-      border:1px solid #ccc; border-radius:8px;
-    }
-    #checkoutModal h3 { text-align:center; color:#ff4081; margin-bottom:20px; }
-    #checkoutModal button {
-      border:none; padding:10px 18px; border-radius:8px; cursor:pointer;
-    }
-    #cancelCheckout { background:#ccc; }
-    #confirmCheckout { background:#ff4081; color:white; }
-  </style>
+        @media (max-width: 550px) {
+            .cart-item {
+                grid-template-columns: 80px 1fr;
+                grid-template-areas: 
+                    "visuals details"
+                    "controls controls"; 
+                gap: 10px;
+            }
+            .item-visuals { grid-area: visuals; }
+            .item-details-main { grid-area: details; }
+            .item-controls-and-total { 
+                grid-area: controls; 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center;
+                width: 100%;
+                padding-top: 10px;
+                border-top: 1px dashed var(--border-color);
+            }
+            .remove-btn { 
+                position: absolute; 
+                top: 15px; right: 0;
+                padding: 5px 10px;
+                font-size: 0.8rem;
+                background: none;
+                color: var(--danger-color);
+                border: 1px solid var(--danger-color);
+            }
+            .remove-btn:hover { background: var(--danger-dark); color: white; transform: none; }
+            .cart-item { position: relative; }
+        }
+        
+        .item-visuals img { 
+            width: 80px; height: 80px; 
+            object-fit: cover; border-radius: 12px; 
+        }
+        .item-details-main h3 { margin: 0; font-size: 1.1rem; font-weight: 600; }
+        .item-details-main p { margin: 0; font-size: 0.9rem; color: var(--text-medium); }
+        
+        .item-controls-and-total {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+
+        .item-total strong {
+            font-size: 1.15rem;
+            color: var(--primary-color);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* Quantity Controls */
+        .quantity-controls {
+            display: flex; align-items: center; gap: 5px;
+            margin-top: 0; 
+            padding: 5px 0;
+            background: var(--primary-light);
+            border-radius: 20px;
+        }
+        .qty-btn {
+            background-color: transparent; border: none;
+            padding: 4px 10px; border-radius: 15px;
+            font-size: 20px; color: var(--primary-color); 
+            cursor: pointer; transition: 0.3s ease;
+        }
+        .qty-btn:hover { background-color: var(--primary-color); color: white; }
+        .qty { min-width: 25px; text-align: center; font-weight: 600; color: var(--text-dark); font-size: 1rem; }
+
+        /* Remove Button */
+        .remove-btn {
+            background: var(--danger-color); color: #fff; border: none;
+            padding: 8px 14px; border-radius: 8px; cursor: pointer; 
+            transition: var(--transition);
+        }
+        .remove-btn:hover { background: var(--danger-dark); transform: scale(1.05); }
+
+        /* === TOTAL & ACTIONS === */
+        .total-display { 
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+            margin-top: 20px;
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+        .total-display strong {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .delivery-note {
+            text-align: left;
+            font-size: 0.9rem;
+            color: var(--text-medium);
+            font-style: italic;
+            margin-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        .cart-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* ENHANCED CHECKOUT BUTTON STYLE */
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #ff7ea5 100%);
+            color: white;
+            border: none;
+            padding: 14px 25px; /* Slightly more padding */
+            border-radius: 30px; /* More rounded */
+            font-weight: 600;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 6px 15px rgba(255, 64, 129, 0.4); /* Stronger shadow */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .checkout-btn:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+            box-shadow: 0 8px 20px rgba(255, 64, 129, 0.6);
+            transform: translateY(-2px); /* Slight lift */
+        }
+        .checkout-btn:active {
+            transform: translateY(1px); /* Press down effect */
+            box-shadow: 0 3px 10px rgba(255, 64, 129, 0.4);
+        }
+
+        /* ENHANCED CLEAR CART BUTTON STYLE */
+        #clear-cart {
+            width: 100%;
+            background: var(--bg-light);
+            color: var(--danger-dark); /* Darker text for contrast */
+            border: 2px solid var(--primary-light); /* Light border by default */
+            padding: 12px 25px; 
+            border-radius: 30px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        #clear-cart:hover {
+            background: var(--primary-light); /* Light pink background on hover */
+            color: var(--danger-dark);
+            border-color: var(--danger-dark); /* Red border on hover */
+            transform: none;
+        }
+        #clear-cart i {
+            margin-right: 5px;
+        }
+
+        footer { 
+            margin-top: 40px; text-align: center; 
+            color: var(--text-medium); font-size: 14px; 
+            padding-bottom: 40px; 
+        }
+
+        /* === CHECKOUT MODAL STYLES === */
+        #checkoutModal {
+            display:none; position:fixed; inset:0;
+            background:rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+            justify-content:center; align-items:center;
+            z-index:2000;
+        }
+        #checkoutModal .modal-content {
+            background:white;
+            padding:25px;
+            border-radius:16px;
+            width:90%; max-width:400px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        #checkoutModal input, #checkoutModal textarea {
+            width:100%; padding:10px; margin:8px 0;
+            border:1px solid #ccc; border-radius:8px;
+        }
+        #checkoutModal h3 { text-align:center; color:var(--primary-color); margin-bottom:20px; }
+        #checkoutModal label { font-weight: 500; font-size: 0.9rem; color: var(--text-medium);}
+        #checkoutModal button {
+            border:none; padding:10px 18px; border-radius:8px; cursor:pointer;
+        }
+        #cancelCheckout { background:#ccc; }
+        #confirmCheckout { background:var(--primary-color); color:white; }
+        
+    </style>
 </head>
 
 <body class="cart-page">
-  <header>
-    <div class="logo"><img src="images/logo.png" alt="MAY’s Handmade Logo" /></div>
-    <h1 class="site-title">MAY’s Handmade</h1>
-    <button class="menu-toggle" id="menu-toggle">☰</button>
-    <nav id="nav-menu">
-      <ul>
-        <li><a href="index.html#home">Home</a></li>
-        <li><a href="index.html#about">About</a></li>
-        <li><a href="index.html#products">Products</a></li>
-        <li><a href="index.html#contact">Contact</a></li>
-        <li><a href="cart.html" class="cart-link">🛍️ Cart (<span id="cart-count">0</span>)</a></li>
-      </ul>
-    </nav>
-  </header>
+    <header>
+        <div class="logo"><img src="images/logo.png" alt="MAY’s Handmade Logo" /></div>
+        <h1 class="site-title">MAY’s Handmade</h1>
+        <button class="menu-toggle" id="menu-toggle">☰</button>
+        <nav id="nav-menu">
+            <ul>
+                <li><a href="index.html#home">Home</a></li>
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#products">Products</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+                <li><a href="cart.html" class="cart-link">🛍️ Cart (<span id="cart-count">0</span>)</a></li>
+            </ul>
+        </nav>
+    </header>
 
-  <section class="cart-container">
-    <h2>Your Shopping Cart</h2>
-    <div id="cart-items" class="cart-items"></div>
-    <div id="cart-total" class="total"></div>
-
-    <p class="delivery-note">Cash on Delivery available • Mandalay only</p>
-
-    <div class="cart-actions">
-      <button id="checkout-btn" class="checkout-btn">Proceed to Checkout</button>
-      <button id="clear-cart" class="remove-btn" style="margin-top:10px;">Clear Cart</button>
-    </div>
-  </section>
-
-  <footer>
-    <p>© 2025 MAY’s Handmade | Crafted with ❤️ by MAY</p>
-  </footer>
-
-  <!-- ✅ Checkout Modal -->
-  <div id="checkoutModal">
-    <div class="modal-content">
-      <h3>🛍️ Checkout Information</h3>
-      <label>👩‍💼 Full Name</label>
-      <input id="cust-name" type="text" placeholder="e.g. May Thu">
-
-      <label>🏠 Delivery Address</label>
-      <textarea id="cust-address" placeholder="e.g. No.12, 40th Street, Mandalay"></textarea>
-
-      <label>📞 Phone Number</label>
-      <input id="cust-phone" type="tel" placeholder="09xxxxxxxxx">
-
-      <div style="display:flex; justify-content:space-between; margin-top:20px;">
-        <button id="cancelCheckout">Cancel</button>
-        <button id="confirmCheckout">Confirm</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const SHEET_URL = "https://script.google.com/macros/s/AKfycbzDXeNqUzFEyKfs_NBFZAVY2SnP8d7N_kV-nbRAFw5KdKdd3aLXla-P0wRCc0N85aLX/exec";
-    const cartContainer = document.getElementById('cart-items');
-    const totalDisplay = document.getElementById('cart-total');
-    const cartCount = document.getElementById('cart-count');
-    const checkoutBtn = document.getElementById('checkout-btn');
-    const clearBtn = document.getElementById('clear-cart');
-    let deliveryFee = 0;
-
-    async function fetchDeliveryFee() {
-      try {
-        const res = await fetch(SHEET_URL);
-        const data = await res.json();
-        deliveryFee = data[0]?.deliveryFee ? parseInt(data[0].deliveryFee) : 3000;
-      } catch {
-        deliveryFee = 3000;
-      }
-    }
-
-    function updateCartCount() {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      cartCount.textContent = cart.reduce((sum, i) => sum + (i.qty || 1), 0);
-    }
-
-    async function renderCart(cart) {
-      cartContainer.innerHTML = "";
-      if (cart.length === 0) {
-        cartContainer.innerHTML = "<p style='text-align:center; color:#777;'>Your cart is empty 👜</p>";
-        totalDisplay.textContent = "";
-        checkoutBtn.style.display = "none";
-        clearBtn.style.display = "none";
-        updateCartCount();
-        return;
-      }
-
-      await fetchDeliveryFee();
-      checkoutBtn.style.display = "inline-block";
-      clearBtn.style.display = "inline-block";
-
-      cart.forEach((item, index) => {
-        const div = document.createElement("div");
-        div.classList.add("cart-item");
-        div.dataset.index = index;
-        div.innerHTML = `
-          <img src="${item.img}" alt="${item.name}">
-          <div class="cart-item-info">
-            <h3>${item.name}</h3>
-            <p>Price: ${item.price.toLocaleString()} MMK</p>
-            <div class="quantity-controls" data-index="${index}">
-              <button class="qty-btn minus">−</button>
-              <span class="qty">${item.qty || 1}</span>
-              <button class="qty-btn plus">+</button>
+    <!-- Cart Container (စျေးခြင်းတောင်း နေရာ) -->
+    <section class="cart-container">
+        
+        <!-- 1. Cart Items List (ပစ္စည်းစာရင်း) -->
+        <div class="cart-list-wrapper">
+            <h2>Your Shopping Cart</h2>
+            <div id="cart-items" class="cart-items">
+                <!-- Items rendered here (ပစ္စည်းများကို ဒီနေရာမှာ ထည့်သွင်းပြသပါမည်) -->
             </div>
-            <p class="item-total">Total: <strong>${(item.price * (item.qty || 1)).toLocaleString()} MMK</strong></p>
-          </div>
-          <button class="remove-btn">Remove</button>
-        `;
-        cartContainer.appendChild(div);
-      });
+        </div>
 
-      updateTotalDisplay(cart);
-      updateCartCount();
+        <!-- 2. Order Summary (မှာယူမှု အကျဉ်းချုပ်) -->
+        <div class="cart-summary-wrapper">
+            <h3 class="summary-title">Order Summary</h3>
+            <div id="cart-total" class="total-display">
+                <!-- Total/Subtotal rendered here (စုစုပေါင်း/ကျသင့်ငွေများကို ဒီနေရာမှာ ထည့်သွင်းပြသပါမည်) -->
+            </div>
 
-      cartContainer.querySelectorAll(".quantity-controls").forEach(ctrl => {
-        const index = parseInt(ctrl.dataset.index);
-        ctrl.querySelector(".minus").onclick = () => changeQty(index, -1);
-        ctrl.querySelector(".plus").onclick = () => changeQty(index, 1);
-      });
+            <p class="delivery-note">Cash on Delivery available • Mandalay only (ပစ္စည်းရောက်မှငွေချေစနစ်ရနိုင်သည် • မန္တလေးမြို့တွင်းသာ)</p>
 
-      cartContainer.querySelectorAll(".remove-btn").forEach((btn, i) => {
-        btn.onclick = () => {
-          const cart = JSON.parse(localStorage.getItem('cart')) || [];
-          cart.splice(i, 1);
-          localStorage.setItem('cart', JSON.stringify(cart));
-          btn.closest(".cart-item").remove();
-          cart.length === 0 ? renderCart([]) : updateTotalDisplay(cart);
-          updateCartCount();
+            <div class="cart-actions">
+                <button id="checkout-btn" class="checkout-btn">
+                    <i class="fas fa-arrow-right"></i> Proceed to Checkout
+                </button>
+                <button id="clear-cart" class="remove-btn">
+                    <i class="fas fa-trash-alt"></i> Clear Cart
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+    <footer>
+        <p>© 2025 MAY’s Handmade | Crafted with ❤️ by MAY</p>
+    </footer>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal">
+        <div class="modal-content">
+            <h3>🛍️ Checkout Information (မှာယူသူ အချက်အလက်)</h3>
+            <label for="cust-name">👩‍💼 Full Name (အမည်အပြည့်အစုံ)</label>
+            <input id="cust-name" type="text" placeholder="e.g. May Thu">
+
+            <label for="cust-address">🏠 Delivery Address (ပို့ဆောင်ရန်လိပ်စာ)</label>
+            <textarea id="cust-address" placeholder="e.g. No.12, 40th Street, Mandalay"></textarea>
+
+            <label for="cust-phone">📞 Phone Number (ဖုန်းနံပါတ်)</label>
+            <input id="cust-phone" type="tel" placeholder="09xxxxxxxxx">
+
+            <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                <button id="cancelCheckout">Cancel (ဖျက်သိမ်းမည်)</button>
+                <button id="confirmCheckout">Confirm Order (အော်ဒါအတည်ပြုမည်)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC (Javascript လည်ပတ်မှု) -->
+    <script>
+        const SHEET_URL = "https://script.google.com/macros/s/AKfycbzDXeNqUzFEyKfs_NBFZAVY2SnP8d7N_kV-nbRAFw5KdKdd3aLXla-P0wRCc0N85aLX/exec";
+        const cartContainer = document.getElementById('cart-items');
+        const totalDisplay = document.getElementById('cart-total'); 
+        const cartCount = document.getElementById('cart-count');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        const clearBtn = document.getElementById('clear-cart');
+        let deliveryFee = 0;
+
+        async function fetchDeliveryFee() {
+            try {
+                const res = await fetch(SHEET_URL);
+                const data = await res.json();
+                deliveryFee = data[0]?.deliveryFee ? parseInt(data[0].deliveryFee) : 3000;
+            } catch (e) {
+                console.warn("Could not fetch delivery fee, defaulting to 3000 MMK.", e);
+                deliveryFee = 3000;
+            }
+        }
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cartCount.textContent = cart.reduce((sum, i) => sum + (i.qty || 1), 0);
+        }
+
+        /**
+         * Renders the cart contents. Does NOT refetch delivery fee as it should be done once on load.
+         * @param {Array<Object>} [cart] - Optional cart array. If not provided, loads from localStorage.
+         */
+        function renderCart(cart) { // 🛑 ASYNC ကို ဖယ်လိုက်ပါပြီ (No longer async)
+            cartContainer.innerHTML = "";
+            
+            if (!cart) cart = JSON.parse(localStorage.getItem('cart')) || []; 
+
+            if (cart.length === 0) {
+                cartContainer.innerHTML = "<p style='text-align:center; color:#777; padding: 40px;'>Your cart is empty 👜<br>Add some beautiful handmade items!</p>";
+                totalDisplay.innerHTML = "";
+                checkoutBtn.style.display = "none";
+                clearBtn.style.display = "none";
+                updateCartCount();
+                return;
+            }
+
+            checkoutBtn.style.display = "inline-flex";
+            clearBtn.style.display = "flex";
+
+            // ❌ ဖယ်လိုက်ပါပြီ။ (REMOVED) - await fetchDeliveryFee(); 
+
+            cart.forEach((item, index) => {
+                const itemQty = item.qty || 1;
+                const itemTotal = item.price * itemQty;
+                
+                // ✅ ပုံမပေါ်သည့် ပြဿနာကို ဖြေရှင်းထားသော လိုင်း (Use item.img or default placeholder)
+                // item.img တွင် URL ပါလာပါက ၎င်းကို အသုံးပြုပြီး မပါပါက (သို့မဟုတ် ပျက်နေပါက) အစားထိုးပုံကို ပြသပါမည်။
+                const imageSource = item.img || 'https://placehold.co/80x80/cccccc/333333?text=BAG';
+
+                const div = document.createElement("div");
+                div.classList.add("cart-item");
+                div.dataset.index = index;
+                
+                div.innerHTML = `
+                    <div class="item-visuals">
+                        <img src="${imageSource}" 
+                             alt="${item.name}" 
+                             onerror="this.onerror=null; this.src='https://placehold.co/80x80/cccccc/333333?text=Error'">
+                    </div>
+                    <div class="item-details-main">
+                        <h3>${item.name}</h3>
+                        <p>${item.price.toLocaleString()} MMK each</p>
+                    </div>
+                    <div class="item-controls-and-total">
+                        <div class="quantity-controls" data-index="${index}">
+                            <button class="qty-btn minus" title="Decrease Quantity">−</button>
+                            <span class="qty">${itemQty}</span>
+                            <button class="qty-btn plus" title="Increase Quantity">+</button>
+                        </div>
+                        <p class="item-total"><strong>${itemTotal.toLocaleString()} MMK</strong></p>
+                    </div>
+                    <button class="remove-btn" title="Remove Item">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                cartContainer.appendChild(div);
+            });
+
+            updateTotalDisplay(cart);
+            updateCartCount();
+            attachCartEventListeners();
+        }
+        
+        function attachCartEventListeners() {
+            document.querySelectorAll(".quantity-controls").forEach(ctrl => {
+                const index = parseInt(ctrl.dataset.index);
+                ctrl.querySelector(".minus").onclick = () => changeQty(index, -1);
+                ctrl.querySelector(".plus").onclick = () => changeQty(index, 1);
+            });
+
+            document.querySelectorAll(".cart-item .remove-btn").forEach((btn) => {
+                const index = parseInt(btn.closest(".cart-item").dataset.index);
+                btn.onclick = () => {
+                    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                    cart.splice(index, 1); 
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    renderCart(cart); // ချက်ချင်း ပြန်ခေါ်သည်
+                };
+            });
+        }
+
+
+        function updateTotalDisplay(cart) {
+            const subtotal = cart.reduce((sum, i) => sum + (i.price * (i.qty || 1)), 0);
+            // deliveryFee ကို Global variable ကနေ ချက်ချင်းသုံးသည်
+            const total = subtotal + deliveryFee;
+            totalDisplay.innerHTML = `
+                <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span> <span>${subtotal.toLocaleString()} MMK</span></div>
+                <div style="display:flex; justify-content:space-between;"><span>Delivery Fee:</span> <span>${deliveryFee.toLocaleString()} MMK</span></div>
+                <div style="display:flex; justify-content:space-between; font-size: 1.1rem; padding-top: 10px;">
+                    <strong>Grand Total:</strong> 
+                    <strong style="color: var(--primary-color);">${total.toLocaleString()} MMK</strong>
+                </div>
+            `;
+        }
+
+        function changeQty(index, delta) {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            if (!cart[index]) return;
+            
+            const itemDiv = document.querySelector(`.cart-item[data-index="${index}"]`);
+            if (!itemDiv) return;
+
+            const newQty = Math.max(1, (cart[index].qty || 1) + delta);
+            
+            if (newQty === cart[index].qty) return;
+
+            cart[index].qty = newQty;
+            localStorage.setItem('cart', JSON.stringify(cart));
+            
+            itemDiv.querySelector(".qty").textContent = cart[index].qty;
+            itemDiv.querySelector(".item-total strong").textContent =
+                (cart[index].price * cart[index].qty).toLocaleString() + " MMK";
+                
+            updateTotalDisplay(cart);
+            updateCartCount();
+        }
+
+        // --- Other Functionality ---
+        clearBtn.addEventListener("click", () => {
+             // ⚠️ alert() အစား custom modal သုံးရမည်၊ ယခု ပိုမိုရိုးရှင်းစေရန် confirm() ကို ခေတ္တသုံးထားသည်။
+             // အမှန်တကယ် app တွင် custom modal ကို အသုံးပြုပါ။
+            if (confirm("Are you sure you want to clear your cart? (စျေးခြင်းတောင်းကို ရှင်းမလား?)")) { 
+                localStorage.removeItem("cart");
+                renderCart([]);
+            }
+        });
+
+        // Checkout modal logic
+        const modal = document.getElementById("checkoutModal");
+        const confirmBtn = document.getElementById("confirmCheckout");
+        const cancelBtn = document.getElementById("cancelCheckout");
+
+        checkoutBtn.addEventListener("click", () => {
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+             // ⚠️ alert() အစား custom modal သုံးရမည်။
+            if (cart.length === 0) return alert("Your cart is empty! (ခြင်းတောင်းထဲတွင် ပစ္စည်းမရှိပါ)");
+            modal.style.display = "flex";
+        });
+
+        cancelBtn.onclick = () => (modal.style.display = "none");
+
+        confirmBtn.onclick = () => {
+            const name = document.getElementById("cust-name").value.trim();
+            const address = document.getElementById("cust-address").value.trim();
+            const phone = document.getElementById("cust-phone").value.trim();
+
+             // ⚠️ alert() အစား custom modal သုံးရမည်။
+            if (!name || !address || !phone) return alert("⚠️ Please fill all fields. (ကျေးဇူးပြု၍ အချက်အလက်အပြည့်အစုံ ဖြည့်ပေးပါ)"); 
+            if (!/^09\d{8,9}$/.test(phone)) return alert("⚠️ Invalid phone number. (ဖုန်းနံပါတ် မမှန်ပါ)");
+
+            const cart = JSON.parse(localStorage.getItem("cart")) || [];
+            const subtotal = cart.reduce((s, i) => s + i.price * (i.qty || 1), 0);
+            const total = subtotal + deliveryFee;
+
+            const orderData = {
+                Name: name,
+                Address: address,
+                Phone: "+95" + phone.substring(1),
+                Subtotal: subtotal + " MMK",
+                DeliveryFee: deliveryFee + " MMK",
+                Total: total + " MMK",
+                Items: cart.map(i => `${i.name} x${i.qty || 1}`).join(", "),
+                Time: new Date().toLocaleString()
+            };
+
+            modal.style.display = "none";
+            // ⚠️ alert() အစား custom modal သုံးရမည်။
+            alert("🙏 ကျေးဇူးတင်ပါတယ်! သင့် order ကို confirm လုပ်ဖို့ ၂၄ နာရီအတွင်း ပြန်လည် ဆက်သွယ်ပါမယ်။");
+
+            localStorage.removeItem("cart");
+            renderCart([]);
+
+            fetch("https://formspree.io/f/xkgqqoev", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(orderData)
+            }).catch(console.warn);
         };
-      });
-    }
 
-    function updateTotalDisplay(cart) {
-      const subtotal = cart.reduce((sum, i) => sum + (i.price * (i.qty || 1)), 0);
-      const total = subtotal + deliveryFee;
-      totalDisplay.innerHTML = `
-        Subtotal: ${subtotal.toLocaleString()} MMK<br>
-        Delivery Fee: ${deliveryFee.toLocaleString()} MMK<br>
-        <strong>Total: ${total.toLocaleString()} MMK</strong>
-      `;
-    }
+        modal.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
 
-    function changeQty(index, delta) {
-      const cart = JSON.parse(localStorage.getItem('cart')) || [];
-      if (!cart[index]) return;
-      cart[index].qty = Math.max(1, (cart[index].qty || 1) + delta);
-      localStorage.setItem('cart', JSON.stringify(cart));
-      const itemDiv = cartContainer.querySelectorAll(".cart-item")[index];
-      itemDiv.querySelector(".qty").textContent = cart[index].qty;
-      itemDiv.querySelector(".item-total strong").textContent =
-        (cart[index].price * cart[index].qty).toLocaleString() + " MMK";
-      updateTotalDisplay(cart);
-      updateCartCount();
-    }
-
-    clearBtn.addEventListener("click", () => {
-      if (confirm("Are you sure you want to clear your cart?")) {
-        localStorage.removeItem("cart");
-        renderCart([]);
-      }
-    });
-
-    // ✅ Checkout modal logic
-    const modal = document.getElementById("checkoutModal");
-    const confirmBtn = document.getElementById("confirmCheckout");
-    const cancelBtn = document.getElementById("cancelCheckout");
-
-    checkoutBtn.addEventListener("click", () => {
-      const cart = JSON.parse(localStorage.getItem("cart")) || [];
-      if (cart.length === 0) return alert("Your cart is empty!");
-      modal.style.display = "flex";
-    });
-
-    cancelBtn.onclick = () => (modal.style.display = "none");
-
-    confirmBtn.onclick = () => {
-      const name = document.getElementById("cust-name").value.trim();
-      const address = document.getElementById("cust-address").value.trim();
-      const phone = document.getElementById("cust-phone").value.trim();
-
-      if (!name || !address || !phone) return alert("⚠️ Please fill all fields.");
-      if (!/^09\d{8,9}$/.test(phone)) return alert("⚠️ Invalid phone number.");
-
-      const cart = JSON.parse(localStorage.getItem("cart")) || [];
-      const subtotal = cart.reduce((s, i) => s + i.price * (i.qty || 1), 0);
-      const total = subtotal + deliveryFee;
-
-      const orderData = {
-        Name: name,
-        Address: address,
-        Phone: "+95" + phone.substring(1),
-        Subtotal: subtotal + " MMK",
-        DeliveryFee: deliveryFee + " MMK",
-        Total: total + " MMK",
-        Items: cart.map(i => `${i.name} x${i.qty || 1}`).join(", "),
-        Time: new Date().toLocaleString()
-      };
-
-      // ✅ Hide modal immediately (no waiting)
-      modal.style.display = "none";
-
-      // ✅ Show success message right away
-      alert("🙏 ကျေးဇူးတင်ပါတယ်! သင့် order ကို confirm လုပ်ဖို့ ၂၄ နာရီအတွင်း ပြန်လည် ဆက်သွယ်ပါမယ်။");
-
-      // ✅ Clear cart immediately
-      localStorage.removeItem("cart");
-      renderCart([]);
-
-      // ✅ Send to Formspree in background (no lag)
-      fetch("https://formspree.io/f/xkgqqoev", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData)
-      }).catch(console.warn);
-    };
-
-    modal.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
-
-    renderCart(JSON.parse(localStorage.getItem('cart')) || []);
-
-    const menuToggle = document.getElementById('menu-toggle');
-    const navMenu = document.getElementById('nav-menu');
-    menuToggle.addEventListener('click', () => {
-      navMenu.querySelector('ul').classList.toggle('active');
-    });
-    document.querySelectorAll('nav a').forEach(link => {
-      link.addEventListener('click', () => {
-        navMenu.querySelector('ul').classList.remove('active');
-      });
-    });
-  </script>
+        // --- Menu Toggle Logic ---
+        const menuToggle = document.getElementById('menu-toggle');
+        const navMenu = document.getElementById('nav-menu').querySelector('ul');
+        menuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+            });
+        });
+        
+        // --- Initial Load (စတင် Loading) ---
+        window.onload = async () => { // 🚀 စာမျက်နှာ စဖွင့်ချိန်ကို ASYNC ပြောင်းလိုက်ပါပြီ
+            // ✅ ပုံမှန် Placeholder URL များကို သုံးခြင်းဖြင့် ပုံမပေါ်သည့် ပြဿနာကို ဖြေရှင်းထားသည်။
+            if (!localStorage.getItem('cart')) {
+                const mockCart = [
+                    { id: 'M-101', name: 'Daisy Crossbody', img: 'https://placehold.co/80x80/ffe5ec/ff4081?text=BAG+A', price: 25000, qty: 1 },
+                    { id: 'M-102', name: 'Luna Tote', img: 'https://placehold.co/80x80/cce5ff/4081ff?text=BAG+B', price: 45000, qty: 2 },
+                    { id: 'M-103', name: 'Sunset Clutch', img: 'https://placehold.co/80x80/fff6cc/ffc340?text=BAG+C', price: 18000, qty: 1 }
+                ];
+                localStorage.setItem('cart', JSON.stringify(mockCart));
+            }
+            
+            await fetchDeliveryFee(); // 📦 ပို့ဆောင်ခကို ဒီနေရာမှာ တစ်ခါသာ ဆွဲယူပါမည်။
+            
+            renderCart();
+        };
+    </script>
 </body>
 </html>
