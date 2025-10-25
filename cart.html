@@ -585,7 +585,7 @@
             const confirmNo = document.getElementById('confirmClearNo');
 
             const removeModal = () => {
-                 document.body.removeChild(confirmationModal);
+                document.body.removeChild(confirmationModal);
             }
 
             confirmYes.addEventListener('click', () => {
@@ -671,15 +671,7 @@
         
         // --- Initial Load (စတင် Loading) ---
         window.onload = async () => { 
-            // Mock cart data if cart is empty, ensuring each item has a 'qty'
-            if (!localStorage.getItem('cart')) {
-                const mockCart = [
-                    { id: 'M-101', name: 'Daisy Crossbody', img: 'https://placehold.co/80x80/ffe5ec/ff4081?text=BAG+A', price: 25000, qty: 1 },
-                    { id: 'M-102', name: 'Luna Tote', img: 'https://placehold.co/80x80/cce5ff/4081ff?text=BAG+B', price: 45000, qty: 2 },
-                    { id: 'M-103', name: 'Sunset Clutch', img: 'https://placehold.co/80x80/fff6cc/ffc340?text=BAG+C', price: 18000, qty: 1 }
-                ];
-                localStorage.setItem('cart', JSON.stringify(mockCart));
-            }
+            // 🛑 Removed mock cart data initialization.
             
             await fetchDeliveryFee(); // 📦 ပို့ဆောင်ခကို ဒီနေရာမှာ တစ်ခါသာ ဆွဲယူပါမည်။
             
