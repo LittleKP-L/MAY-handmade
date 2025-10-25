@@ -320,18 +320,25 @@
             imgEl.src = product.img;
             descEl.textContent = product.description || "No additional description available.";
 
-            // Stock Status Logic (NEW/UPDATED)
+            // Stock Status Logic (UPDATED)
             if (stock > 0) {
                 stockStatusEl.innerHTML = `<span style="color: #28a745;"><i class="fa-solid fa-circle-check"></i> In Stock (${stock} left)</span>`;
                 addToCartBtn.disabled = false;
                 buyNowBtn.disabled = false;
+                
+                // NEW: Initial check for max quantity
+                // If the stock is 1, disable the plus button immediately
+                if (qty >= stock) {
+                    plusBtn.disabled = true;
+                }
             } else {
+                // Out of Stock Logic (Pre Order)
                 stockStatusEl.innerHTML = `<span style="color: #dc3545;"><i class="fa-solid fa-circle-xmark"></i> Out of Stock</span>`;
                 
                 // If stock is 0 or less, change 'Buy Now' to 'Pre Order' 
                 buyNowBtn.textContent = "Pre Order";
                 
-                // Disable Add to Cart and quantity buttons
+                // Disable Add to Cart and quantity buttons entirely (only Pre Order is allowed)
                 addToCartBtn.disabled = true;
                 addToCartBtn.style.opacity = '0.6';
                 minusBtn.disabled = true;
@@ -342,17 +349,34 @@
         }
 
         document.getElementById('minus').onclick = () => {
-             // Only allow changing quantity if plusBtn is not disabled (i.e. if in stock)
-            if (!minusBtn.disabled && qty > 1) { 
+            if (minusBtn.disabled) return; // Prevent action if stock is 0
+
+            if (qty > 1) { 
                 qty--; 
                 qtyEl.textContent = qty; 
+                
+                // Re-enable plus button if quantity drops below stock limit
+                const currentStock = parseInt(product.stock) || 0;
+                if (qty < currentStock) {
+                    plusBtn.disabled = false;
+                }
             }
         };
+        
         document.getElementById('plus').onclick = () => {
-            // Only allow changing quantity if plusBtn is not disabled (i.e. if in stock)
-            if (!plusBtn.disabled) {
+            if (plusBtn.disabled) return; // Prevent action if stock is 0 OR if qty reached stock limit
+
+            const currentStock = parseInt(product.stock) || 0;
+            
+            if (qty < currentStock) {
                  qty++; 
                  qtyEl.textContent = qty;
+            }
+            
+            // Check if we reached the maximum stock after increment
+            if (qty >= currentStock) {
+                plusBtn.disabled = true;
+                showToast(`Maximum quantity reached (${currentStock})`);
             }
         };
 

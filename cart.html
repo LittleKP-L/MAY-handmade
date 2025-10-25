@@ -191,22 +191,25 @@
             white-space: nowrap;
         }
 
-        /* Quantity Controls */
+        /* Quantity Controls (SIMPLIFIED - buttons removed) */
         .quantity-controls {
-            display: flex; align-items: center; gap: 5px;
+            display: flex; 
+            align-items: center; 
+            gap: 5px;
             margin-top: 0; 
-            padding: 5px 0;
-            background: var(--primary-light);
-            border-radius: 20px;
+            padding: 0; /* Removed padding */
+            background: transparent; /* Removed background */
+            border-radius: 0;
         }
-        .qty-btn {
-            background-color: transparent; border: none;
-            padding: 4px 10px; border-radius: 15px;
-            font-size: 20px; color: var(--primary-color); 
-            cursor: pointer; transition: 0.3s ease;
+        /* Removed .qty-btn styles as buttons are gone */
+        .qty { 
+            min-width: unset; 
+            text-align: right; 
+            font-weight: 500; 
+            color: var(--text-medium); 
+            font-size: 0.95rem; 
+            white-space: nowrap;
         }
-        .qty-btn:hover { background-color: var(--primary-color); color: white; }
-        .qty { min-width: 25px; text-align: center; font-weight: 600; color: var(--text-dark); font-size: 1rem; }
 
         /* Remove Button */
         .remove-btn {
@@ -334,7 +337,10 @@
 
 <body class="cart-page">
     <header>
-        <div class="logo"><img src="images/logo.png" alt="MAY’s Handmade Logo" /></div>
+        <div class="logo">
+            <!-- Used placeholder image URL for the logo -->
+            <img src="https://placehold.co/45x45/ff4081/ffffff?text=M" alt="MAY’s Handmade Logo" />
+        </div>
         <h1 class="site-title">MAY’s Handmade</h1>
         <button class="menu-toggle" id="menu-toggle">☰</button>
         <nav id="nav-menu">
@@ -406,6 +412,7 @@
 
     <!-- JAVASCRIPT LOGIC (Javascript လည်ပတ်မှု) -->
     <script>
+        // ⚠️ Firestore/Auth is not needed for this modification. Sticking to localStorage and the existing structure.
         const SHEET_URL = "https://script.google.com/macros/s/AKfycbzDXeNqUzFEyKfs_NBFZAVY2SnP8d7N_kV-nbRAFw5KdKdd3aLXla-P0wRCc0N85aLX/exec";
         const cartContainer = document.getElementById('cart-items');
         const totalDisplay = document.getElementById('cart-total'); 
@@ -414,9 +421,25 @@
         const clearBtn = document.getElementById('clear-cart');
         let deliveryFee = 0;
 
+        // --- Utility Functions ---
+
         async function fetchDeliveryFee() {
             try {
-                const res = await fetch(SHEET_URL);
+                // Implementing exponential backoff for resilience
+                let res;
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        res = await fetch(SHEET_URL);
+                        if (res.ok) break;
+                    } catch (e) {
+                        // Wait (1s, 2s, 4s) before retrying
+                        if (i < 2) await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                        else throw e; // Throw error on final failure
+                    }
+                }
+
+                if (!res || !res.ok) throw new Error("Failed to fetch data.");
+                
                 const data = await res.json();
                 deliveryFee = data[0]?.deliveryFee ? parseInt(data[0].deliveryFee) : 3000;
             } catch (e) {
@@ -431,10 +454,10 @@
         }
 
         /**
-         * Renders the cart contents. Does NOT refetch delivery fee as it should be done once on load.
+         * Renders the cart contents.
          * @param {Array<Object>} [cart] - Optional cart array. If not provided, loads from localStorage.
          */
-        function renderCart(cart) { // 🛑 ASYNC ကို ဖယ်လိုက်ပါပြီ (No longer async)
+        function renderCart(cart) {
             cartContainer.innerHTML = "";
             
             if (!cart) cart = JSON.parse(localStorage.getItem('cart')) || []; 
@@ -451,20 +474,18 @@
             checkoutBtn.style.display = "inline-flex";
             clearBtn.style.display = "flex";
 
-            // ❌ ဖယ်လိုက်ပါပြီ။ (REMOVED) - await fetchDeliveryFee(); 
-
             cart.forEach((item, index) => {
                 const itemQty = item.qty || 1;
                 const itemTotal = item.price * itemQty;
                 
-                // ✅ ပုံမပေါ်သည့် ပြဿနာကို ဖြေရှင်းထားသော လိုင်း (Use item.img or default placeholder)
-                // item.img တွင် URL ပါလာပါက ၎င်းကို အသုံးပြုပြီး မပါပါက (သို့မဟုတ် ပျက်နေပါက) အစားထိုးပုံကို ပြသပါမည်။
+                // Use item.img or default placeholder
                 const imageSource = item.img || 'https://placehold.co/80x80/cccccc/333333?text=BAG';
 
                 const div = document.createElement("div");
                 div.classList.add("cart-item");
                 div.dataset.index = index;
                 
+                // 🛑 REMOVED Quantity Adjustment Buttons (+/-)
                 div.innerHTML = `
                     <div class="item-visuals">
                         <img src="${imageSource}" 
@@ -477,9 +498,7 @@
                     </div>
                     <div class="item-controls-and-total">
                         <div class="quantity-controls" data-index="${index}">
-                            <button class="qty-btn minus" title="Decrease Quantity">−</button>
-                            <span class="qty">${itemQty}</span>
-                            <button class="qty-btn plus" title="Increase Quantity">+</button>
+                            <span class="qty">Qty: ${itemQty}</span>
                         </div>
                         <p class="item-total"><strong>${itemTotal.toLocaleString()} MMK</strong></p>
                     </div>
@@ -496,12 +515,8 @@
         }
         
         function attachCartEventListeners() {
-            document.querySelectorAll(".quantity-controls").forEach(ctrl => {
-                const index = parseInt(ctrl.dataset.index);
-                ctrl.querySelector(".minus").onclick = () => changeQty(index, -1);
-                ctrl.querySelector(".plus").onclick = () => changeQty(index, 1);
-            });
-
+            // 🛑 REMOVED: Event listeners for .minus and .plus buttons were here.
+            
             document.querySelectorAll(".cart-item .remove-btn").forEach((btn) => {
                 const index = parseInt(btn.closest(".cart-item").dataset.index);
                 btn.onclick = () => {
@@ -513,10 +528,10 @@
             });
         }
 
+        // 🛑 REMOVED: The entire changeQty function is no longer needed.
 
         function updateTotalDisplay(cart) {
             const subtotal = cart.reduce((sum, i) => sum + (i.price * (i.qty || 1)), 0);
-            // deliveryFee ကို Global variable ကနေ ချက်ချင်းသုံးသည်
             const total = subtotal + deliveryFee;
             totalDisplay.innerHTML = `
                 <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span> <span>${subtotal.toLocaleString()} MMK</span></div>
@@ -528,60 +543,88 @@
             `;
         }
 
-        function changeQty(index, delta) {
-            const cart = JSON.parse(localStorage.getItem('cart')) || [];
-            if (!cart[index]) return;
-            
-            const itemDiv = document.querySelector(`.cart-item[data-index="${index}"]`);
-            if (!itemDiv) return;
-
-            const newQty = Math.max(1, (cart[index].qty || 1) + delta);
-            
-            if (newQty === cart[index].qty) return;
-
-            cart[index].qty = newQty;
-            localStorage.setItem('cart', JSON.stringify(cart));
-            
-            itemDiv.querySelector(".qty").textContent = cart[index].qty;
-            itemDiv.querySelector(".item-total strong").textContent =
-                (cart[index].price * cart[index].qty).toLocaleString() + " MMK";
-                
-            updateTotalDisplay(cart);
-            updateCartCount();
-        }
-
-        // --- Other Functionality ---
-        clearBtn.addEventListener("click", () => {
-             // ⚠️ alert() အစား custom modal သုံးရမည်၊ ယခု ပိုမိုရိုးရှင်းစေရန် confirm() ကို ခေတ္တသုံးထားသည်။
-             // အမှန်တကယ် app တွင် custom modal ကို အသုံးပြုပါ။
-            if (confirm("Are you sure you want to clear your cart? (စျေးခြင်းတောင်းကို ရှင်းမလား?)")) { 
-                localStorage.removeItem("cart");
-                renderCart([]);
-            }
-        });
-
-        // Checkout modal logic
+        // --- Modal/Confirmation Logic (Replacing alert/confirm with simplified modal logic) ---
         const modal = document.getElementById("checkoutModal");
         const confirmBtn = document.getElementById("confirmCheckout");
         const cancelBtn = document.getElementById("cancelCheckout");
 
+        // Simple Message Box for alerts
+        function showMessage(message) {
+            const tempModal = document.createElement('div');
+            tempModal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(3px);';
+            tempModal.innerHTML = `
+                <div style="background:white; padding:30px; border-radius:12px; max-width:300px; text-align:center; box-shadow:0 8px 16px rgba(0,0,0,0.3);">
+                    <p style="margin-bottom:20px; font-weight:500;">${message}</p>
+                    <button onclick="document.body.removeChild(this.closest('div').parentNode)" style="background:var(--primary-color); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">OK</button>
+                </div>
+            `;
+            document.body.appendChild(tempModal);
+        }
+
+        // 🛑 FIX: Clear Cart logic updated to use event listeners instead of inline onclick 
+        // to prevent scope issues, ensuring the modal is correctly removed.
+        clearBtn.addEventListener("click", () => {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            if (cart.length === 0) {
+                return showMessage("Cart is already empty! (ခြင်းတောင်းထဲတွင် ပစ္စည်းမရှိသေးပါ)");
+            }
+
+            const confirmationModal = document.createElement('div');
+            confirmationModal.classList.add('confirmation-modal');
+            confirmationModal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(3px);';
+            confirmationModal.innerHTML = `
+                <div id="confirmationBox" style="background:white; padding:30px; border-radius:12px; max-width:350px; text-align:center; box-shadow:0 8px 16px rgba(0,0,0,0.3);">
+                    <p style="margin-bottom:20px; font-weight:600;">Are you sure you want to clear your cart? (စျေးခြင်းတောင်းကို ရှင်းမလား?)</p>
+                    <button id="confirmClearYes" style="background:var(--danger-color); color:white; border:none; padding:10px 18px; border-radius:8px; cursor:pointer; margin-right:10px;">Yes, Clear</button>
+                    <button id="confirmClearNo" style="background:#ccc; color:#333; border:none; padding:10px 18px; border-radius:8px; cursor:pointer;">Cancel</button>
+                </div>
+            `;
+            document.body.appendChild(confirmationModal);
+            
+            const confirmYes = document.getElementById('confirmClearYes');
+            const confirmNo = document.getElementById('confirmClearNo');
+
+            const removeModal = () => {
+                 document.body.removeChild(confirmationModal);
+            }
+
+            confirmYes.addEventListener('click', () => {
+                removeModal();
+                localStorage.removeItem("cart");
+                renderCart([]);
+            });
+
+            confirmNo.addEventListener('click', () => {
+                removeModal();
+            });
+            
+            // Allow clicking outside to close
+            confirmationModal.addEventListener('click', (e) => {
+                if (e.target === confirmationModal) {
+                    removeModal();
+                }
+            });
+        });
+
+        // Checkout button click handler
         checkoutBtn.addEventListener("click", () => {
             const cart = JSON.parse(localStorage.getItem("cart")) || [];
-             // ⚠️ alert() အစား custom modal သုံးရမည်။
-            if (cart.length === 0) return alert("Your cart is empty! (ခြင်းတောင်းထဲတွင် ပစ္စည်းမရှိပါ)");
+            if (cart.length === 0) {
+                return showMessage("Your cart is empty! (ခြင်းတောင်းထဲတွင် ပစ္စည်းမရှိပါ)");
+            }
             modal.style.display = "flex";
         });
 
         cancelBtn.onclick = () => (modal.style.display = "none");
 
+        // Order Confirmation handler
         confirmBtn.onclick = () => {
             const name = document.getElementById("cust-name").value.trim();
             const address = document.getElementById("cust-address").value.trim();
             const phone = document.getElementById("cust-phone").value.trim();
 
-             // ⚠️ alert() အစား custom modal သုံးရမည်။
-            if (!name || !address || !phone) return alert("⚠️ Please fill all fields. (ကျေးဇူးပြု၍ အချက်အလက်အပြည့်အစုံ ဖြည့်ပေးပါ)"); 
-            if (!/^09\d{8,9}$/.test(phone)) return alert("⚠️ Invalid phone number. (ဖုန်းနံပါတ် မမှန်ပါ)");
+            if (!name || !address || !phone) return showMessage("⚠️ Please fill all fields. (ကျေးဇူးပြု၍ အချက်အလက်အပြည့်အစုံ ဖြည့်ပေးပါ)"); 
+            if (!/^09\d{8,9}$/.test(phone)) return showMessage("⚠️ Invalid phone number. (ဖုန်းနံပါတ် 09 ဖြင့် စတင်သော နံပါတ် မှန်မမှန် စစ်ဆေးပါ)");
 
             const cart = JSON.parse(localStorage.getItem("cart")) || [];
             const subtotal = cart.reduce((s, i) => s + i.price * (i.qty || 1), 0);
@@ -599,12 +642,12 @@
             };
 
             modal.style.display = "none";
-            // ⚠️ alert() အစား custom modal သုံးရမည်။
-            alert("🙏 ကျေးဇူးတင်ပါတယ်! သင့် order ကို confirm လုပ်ဖို့ ၂၄ နာရီအတွင်း ပြန်လည် ဆက်သွယ်ပါမယ်။");
+            showMessage("🙏 ကျေးဇူးတင်ပါတယ်! သင့် order ကို confirm လုပ်ဖို့ ၂၄ နာရီအတွင်း ပြန်လည် ဆက်သွယ်ပါမယ်။");
 
             localStorage.removeItem("cart");
             renderCart([]);
 
+            // Send data to Formspree
             fetch("https://formspree.io/f/xkgqqoev", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -627,8 +670,8 @@
         });
         
         // --- Initial Load (စတင် Loading) ---
-        window.onload = async () => { // 🚀 စာမျက်နှာ စဖွင့်ချိန်ကို ASYNC ပြောင်းလိုက်ပါပြီ
-            // ✅ ပုံမှန် Placeholder URL များကို သုံးခြင်းဖြင့် ပုံမပေါ်သည့် ပြဿနာကို ဖြေရှင်းထားသည်။
+        window.onload = async () => { 
+            // Mock cart data if cart is empty, ensuring each item has a 'qty'
             if (!localStorage.getItem('cart')) {
                 const mockCart = [
                     { id: 'M-101', name: 'Daisy Crossbody', img: 'https://placehold.co/80x80/ffe5ec/ff4081?text=BAG+A', price: 25000, qty: 1 },
@@ -640,6 +683,7 @@
             
             await fetchDeliveryFee(); // 📦 ပို့ဆောင်ခကို ဒီနေရာမှာ တစ်ခါသာ ဆွဲယူပါမည်။
             
+            // Replaced alert() and confirm() with custom modal/message box functions (Good practice)
             renderCart();
         };
     </script>
