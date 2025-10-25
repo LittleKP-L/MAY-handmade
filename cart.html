@@ -338,8 +338,8 @@
 <body class="cart-page">
     <header>
         <div class="logo">
-            <!-- Used placeholder image URL for the logo -->
-            <img src="https://placehold.co/45x45/ff4081/ffffff?text=M" alt="MAY’s Handmade Logo" />
+           
+            <img src="images/logo.png" alt="MAY’s Handmade Logo" />
         </div>
         <h1 class="site-title">MAY’s Handmade</h1>
         <button class="menu-toggle" id="menu-toggle">☰</button>
@@ -624,7 +624,7 @@
             const phone = document.getElementById("cust-phone").value.trim();
 
             if (!name || !address || !phone) return showMessage("⚠️ Please fill all fields. (ကျေးဇူးပြု၍ အချက်အလက်အပြည့်အစုံ ဖြည့်ပေးပါ)"); 
-            if (!/^09\d{8,9}$/.test(phone)) return showMessage("⚠️ Invalid phone number. (ဖုန်းနံပါတ် 09 ဖြင့် စတင်သော နံပါတ် မှန်မမှန် စစ်ဆေးပါ)");
+            if (!/^09\d{8,9}$/.test(phone)) return showMessage("⚠️ Invalid phone number. (ဖုန်းနံပါတ် 09 ဖြင့် စတင်သော နံပါတ် မှန် မမှန် စစ်ဆေးပါ)");
 
             const cart = JSON.parse(localStorage.getItem("cart")) || [];
             const subtotal = cart.reduce((s, i) => s + i.price * (i.qty || 1), 0);
